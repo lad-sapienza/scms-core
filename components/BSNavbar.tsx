@@ -159,11 +159,7 @@ const DropdownItem: React.FC<{ item: MenuItem; currentPath: string }> = ({ item,
       </button>
       {isOpen && (
         <ul
-          className="dropdown-menu show"
-          style={openLeft
-            ? { position: "absolute", right: "100%", left: "auto", top: 0, minWidth: "12rem" }
-            : { position: "absolute", left: "100%", top: 0, minWidth: "12rem" }
-          }
+          className={`dropdown-menu show scms-nested-dropdown${openLeft ? " scms-nested-dropdown--left" : ""}`}
         >
           {item.children!.map((child, i) => (
             <DropdownItem key={child.href ?? i} item={child} currentPath={currentPath} />
@@ -233,6 +229,39 @@ const BSNavbar: React.FC<BSNavbarProps> = ({ menuItems, currentPath = "/", cssCl
 
   return (
     <nav className={`navbar navbar-expand-md ${cssClasses.nav ?? ""}`}>
+      {/*
+        Third-level (and deeper) dropdowns cascade sideways on desktop
+        (position: absolute; left/right: 100% — see DropdownItem below).
+        Below Bootstrap's md breakpoint the navbar collapses into a
+        single narrow column (navbar-expand-md), and a sideways flyout
+        has nowhere to go but off the edge of the screen — unreachable,
+        not just visually broken. Below md, this flips the same markup
+        to flow inline instead, indented to show the hierarchy.
+      */}
+      <style>{`
+        @media (max-width: 767.98px) {
+          .scms-nested-dropdown {
+            position: static !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding-left: 1rem;
+          }
+        }
+        @media (min-width: 768px) {
+          .scms-nested-dropdown {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            min-width: 12rem;
+          }
+          .scms-nested-dropdown.scms-nested-dropdown--left {
+            left: auto;
+            right: 100%;
+          }
+        }
+      `}</style>
       <div className="container">
         {brand && (
           <a className={`navbar-brand ${brand.cssClasses ?? ""}`} href={brand.link}>

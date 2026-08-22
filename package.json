@@ -1,6 +1,6 @@
 {
   "name": "@lad-sapienza/scms-core",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "description": "Framework components and Astro integrations for s:CMS — DataTb, Gallery, Map, ZoteroGeoViewer, Record.",
   "type": "module",
   "license": "BSD-0-Clause",
