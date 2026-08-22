@@ -65,6 +65,17 @@ import { directusLoader } from '@lad-sapienza/scms-core/integrations/directusLoa
 
 See each component folder's own `README.md` (`components/DataTb`, `components/Gallery`, `components/ZoteroGeoViewer`, `components/`) for detailed API docs and examples.
 
+## Scaffolding CLI
+
+This package also ships the interactive scaffolding tools sCMS sites use to add content, as `bin` commands — run from the consuming site's project root:
+
+```bash
+npx scms-add-collection   # scaffold a new Astro content collection under usr/
+npx scms-add-content      # add a new content file to an existing collection
+```
+
+A consuming site typically wires these up as `npm run add-collection` / `npm run add-content` in its own `package.json`.
+
 ## Development
 
 ```bash

@@ -1,6 +1,6 @@
 {
   "name": "@lad-sapienza/scms-core",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Framework components and Astro integrations for s:CMS — DataTb, Gallery, Map, ZoteroGeoViewer, Record.",
   "type": "module",
   "license": "BSD-0-Clause",
@@ -10,9 +10,14 @@
   },
   "author": "Julian Bogdani <julian.bogdani@uniroma1.it>",
   "main": "./index.ts",
+  "bin": {
+    "scms-add-collection": "./bin/add-collection.mjs",
+    "scms-add-content": "./bin/add-content.mjs"
+  },
   "files": [
     "index.ts",
     "scms.ts",
+    "bin",
     "components",
     "integrations",
     "utils",
