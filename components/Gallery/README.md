@@ -7,7 +7,7 @@ A responsive image gallery component with PhotoSwipe lightbox integration. One c
 - 📸 **PhotoSwipe Lightbox**: Full-screen image viewing with zoom and navigation
 - 🎨 **Responsive Grid**: Auto-adjusting columns based on screen size
 - 🔄 **Auto-loading**: automatically discovers images in a `gallery/` folder colocated with the current page/content file
-- 🔗 **Shared galleries**: reference one set of images by name from `usr/galleries/<name>/`
+- 🔗 **Shared galleries**: reference one set of images by name from `src/galleries/<name>/`
 - 🔍 **Custom Captions**: via `captions.json`, or auto-generated from filenames
 - ⌨️ **Keyboard Navigation**: Arrow keys and ESC support
 - ♿ **Accessible**: Proper ARIA labels and keyboard support
@@ -30,7 +30,7 @@ details, and `core/components/Gallery/galleryUtils.ts` for the matching logic.
 ### Colocated (default) — auto-loads from a sibling `gallery/` folder
 
 ```
-usr/content/blog/my-post/
+src/content/blog/my-post/
   index.mdx
   gallery/
     photo1.jpg
@@ -53,7 +53,7 @@ nothing. Use `name` (below) or `images` as a workaround in that case.
 ### Shared — referenced by name from any page
 
 ```
-usr/galleries/
+src/galleries/
   scavi-2024/
     photo1.jpg
     photo2.jpg
@@ -98,7 +98,7 @@ the build.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `name` | `string` | — | Load a shared gallery from `usr/galleries/<name>/` |
+| `name` | `string` | — | Load a shared gallery from `src/galleries/<name>/` |
 | `images` | `GalleryImage[]` | — | Explicit images — takes precedence over `name` and auto-loading |
 | `reverseSorting` | `boolean` | `false` | Reverse the default alphabetical sort |
 | `columns` | `{ min?: number, max?: number }` | `{ min: 200, max: 1 }` | `min` = minimum item width in px; `max` = maximum column count |

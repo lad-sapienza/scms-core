@@ -11,7 +11,7 @@ A powerful, flexible data table component for Astro with support for multiple da
 - 🎨 **Auto-detection**: Automatically detects columns from data
 - ⚙️ **Customizable**: Override columns, formatting, and rendering
 - 🎯 **TypeScript**: Full type safety
-- 💅 **Bootstrap Styled**: Uses the same Bootstrap 5 classes as the rest of s:CMS, themeable via `usr/styles/global.css`
+- 💅 **Bootstrap Styled**: Uses the same Bootstrap 5 classes as the rest of s:CMS, themeable via your site's `src/styles/global.css`
 
 ## Basic Usage
 
@@ -272,4 +272,4 @@ Data fetching is handled internally based on the `source`/`csv`/`json`/`api`/`di
 
 ## Examples
 
-See the [DataTb docs page](../../../usr/content/docs/components/datatb.mdx) (rendered at `/docs/components/datatb` on a running site) for live, interactive examples of every prop and source type.
+See the [DataTb docs page](https://scms.lad-sapienza.it/docs/components/datatb) on the s:CMS demo site for live, interactive examples of every prop and source type.

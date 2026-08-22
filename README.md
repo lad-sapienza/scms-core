@@ -29,9 +29,9 @@ export default defineConfig({
   integrations: [
     ...scms({
       // all optional, default to the paths below
-      contentDir: 'usr/content',
-      pagesDir: 'usr/pages',
-      galleriesDir: 'usr/galleries',
+      contentDir: 'src/content',
+      pagesDir: 'src/pages',
+      galleriesDir: 'src/galleries',
     }),
   ],
 });
@@ -65,16 +65,26 @@ import { directusLoader } from '@lad-sapienza/scms-core/integrations/directusLoa
 
 See each component folder's own `README.md` (`components/DataTb`, `components/Gallery`, `components/ZoteroGeoViewer`, `components/`) for detailed API docs and examples.
 
-## Scaffolding CLI
-
-This package also ships the interactive scaffolding tools sCMS sites use to add content, as `bin` commands — run from the consuming site's project root:
+## Creating a new site
 
 ```bash
-npx scms-add-collection   # scaffold a new Astro content collection under usr/
+npx --package=@lad-sapienza/scms-core scms-create my-site
+cd my-site
+npm run dev
+```
+
+Prompts for a title, description, author, and site URL, then scaffolds a minimal, ready-to-run Astro + s:CMS project (`src/content.config.ts`, `src/pages/index.astro`, `astro.config.mjs`, etc.) and runs `npm install`.
+
+## Scaffolding CLI
+
+This package also ships the interactive scaffolding tools s:CMS sites use to add content, as `bin` commands — run from the consuming site's project root:
+
+```bash
+npx scms-add-collection   # scaffold a new Astro content collection under src/
 npx scms-add-content      # add a new content file to an existing collection
 ```
 
-A consuming site typically wires these up as `npm run add-collection` / `npm run add-content` in its own `package.json`.
+A consuming site typically wires these up as `npm run add-collection` / `npm run add-content` in its own `package.json` (this is what `scms-create` sets up automatically).
 
 ## Development
 

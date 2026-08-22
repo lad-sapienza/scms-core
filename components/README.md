@@ -56,7 +56,7 @@ Core components should be:
 
 ## User Customization
 
-Users should **not** edit core components directly. Instead:
-- Override behavior in `usr/layouts/`
-- Create custom components in `usr/components/`
+Users should **not** fork these components. Instead:
+- Override behavior in `src/layouts/`
+- Create custom components in `src/components/`
 - Extend layouts with slots and composition
