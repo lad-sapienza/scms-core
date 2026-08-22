@@ -18,7 +18,12 @@ Register the integration in `astro.config.mjs`:
 
 ```js
 import { defineConfig } from 'astro/config';
-import { scms } from '@lad-sapienza/scms-core';
+// Import from the `/scms` subpath, not the bare `@lad-sapienza/scms-core`
+// specifier — the bare specifier resolves to index.ts, which re-exports
+// .astro components (Gallery, TableOfContents). Astro can't compile .astro
+// files yet at config-load time, before its own Vite plugin is registered,
+// so a bare import here breaks with a Vite parse error.
+import { scms } from '@lad-sapienza/scms-core/scms';
 
 export default defineConfig({
   integrations: [
