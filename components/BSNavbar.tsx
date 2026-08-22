@@ -43,7 +43,7 @@ interface CssClasses {
  * Active state is computed internally from `currentPath` — no need to set
  * `isActive` on individual menu items.
  *
- * Menu data can be loaded from a YAML file (e.g. `usr/content/data/menu.yaml`)
+ * Menu data can be loaded from a YAML file (e.g. `src/content/data/menu.yaml`)
  * and passed straight to `menuItems`.
  *
  * Must be hydrated with `client:load` when used inside an Astro component.
@@ -63,7 +63,7 @@ interface CssClasses {
  * />
  * ```
  *
- * @example YAML menu structure (`usr/content/data/menu.yaml`)
+ * @example YAML menu structure (`src/content/data/menu.yaml`)
  * ```yaml
  * - href: /
  *   label: Home

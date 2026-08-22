@@ -2,12 +2,12 @@
  * contentAssetsIntegration
  *
  * Astro integration that serves static assets (images, PDFs, etc.) co-located
- * in the content directory (usr/content/ by default) without requiring a
+ * in the content directory (src/content/ by default) without requiring a
  * manual copy step.
  *
  * - Dev server: a Vite middleware intercepts requests for static file extensions
  *   and serves them directly from the content directory, mapping URL paths 1:1
- *   (e.g. /blog/post/image.jpg → usr/content/blog/post/image.jpg).
+ *   (e.g. /blog/post/image.jpg → src/content/blog/post/image.jpg).
  *
  * - Production build: assets are copied from the content directory into dist/
  *   with the same relative path structure, so they are available at the
@@ -23,7 +23,7 @@ import { existsSync, statSync, mkdirSync, copyFileSync, readdirSync, createReadS
 import { fileURLToPath } from 'node:url';
 
 export interface ContentAssetsOptions {
-  /** Path to the content directory, relative to the project root. Defaults to 'usr/content'. */
+  /** Path to the content directory, relative to the project root. Defaults to 'src/content'. */
   contentDir?: string;
 }
 
@@ -60,7 +60,7 @@ function collectAssets(dir: string, results: string[] = []): string[] {
 }
 
 export function contentAssetsIntegration(options: ContentAssetsOptions = {}): AstroIntegration {
-  const contentDirSegment = options.contentDir ?? join('usr', 'content');
+  const contentDirSegment = options.contentDir ?? join('src', 'content');
   // Resolved from Astro's own config root in astro:config:setup below, rather
   // than assumed from process.cwd() — more portable if the process is ever
   // invoked from somewhere other than the project root.
@@ -76,7 +76,7 @@ export function contentAssetsIntegration(options: ContentAssetsOptions = {}): As
       /**
        * Dev server: add a Connect middleware that serves static assets directly
        * from the content directory without requiring them to be copied to
-       * usr/public/.
+       * public/.
        */
       'astro:server:setup': ({ server, logger }) => {
         const contentDir = resolve(projectRoot, contentDirSegment);

@@ -30,11 +30,11 @@ import { contentAssetsIntegration } from './integrations/contentAssetsIntegratio
 import { galleryIntegration } from './integrations/galleryIntegration';
 
 export interface ScmsOptions {
-  /** Path to the content directory, relative to the project root. Defaults to 'usr/content'. */
+  /** Path to the content directory, relative to the project root. Defaults to 'src/content'. */
   contentDir?: string;
-  /** Path to page files, relative to the project root. Defaults to 'usr/pages'. */
+  /** Path to page files, relative to the project root. Defaults to 'src/pages'. */
   pagesDir?: string;
-  /** Path to shared galleries, relative to the project root. Defaults to 'usr/galleries'. */
+  /** Path to shared galleries, relative to the project root. Defaults to 'src/galleries'. */
   galleriesDir?: string;
 }
 

@@ -2,23 +2,23 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const manifest = {
   pagesImages: {
-    '/usr/pages/my-page/gallery/photo1.jpg': { default: { src: '/_astro/photo1.abc123.jpg', width: 1200, height: 800 } },
+    '/src/pages/my-page/gallery/photo1.jpg': { default: { src: '/_astro/photo1.abc123.jpg', width: 1200, height: 800 } },
   },
   contentImages: {
-    '/usr/content/blog/my-article/gallery/photo2.jpg': { default: { src: '/_astro/photo2.def456.jpg', width: 1000, height: 600 } },
-    '/usr/content/blog/other-article/gallery/photo3.jpg': { default: { src: '/_astro/photo3.ghi789.jpg', width: 900, height: 500 } },
+    '/src/content/blog/my-article/gallery/photo2.jpg': { default: { src: '/_astro/photo2.def456.jpg', width: 1000, height: 600 } },
+    '/src/content/blog/other-article/gallery/photo3.jpg': { default: { src: '/_astro/photo3.ghi789.jpg', width: 900, height: 500 } },
   },
   sharedImages: {
-    '/usr/galleries/scavi-2024/site-a.jpg': { default: { src: '/_astro/site-a.jkl000.jpg', width: 800, height: 600 } },
-    '/usr/galleries/scavi-2024/site-b_1920.jpg': { default: { src: '/_astro/site-b_1920.mno111.jpg', width: 800, height: 600 } },
-    '/usr/galleries/other-name/site-c.jpg': { default: { src: '/_astro/site-c.pqr222.jpg', width: 800, height: 600 } },
+    '/src/galleries/scavi-2024/site-a.jpg': { default: { src: '/_astro/site-a.jkl000.jpg', width: 800, height: 600 } },
+    '/src/galleries/scavi-2024/site-b_1920.jpg': { default: { src: '/_astro/site-b_1920.mno111.jpg', width: 800, height: 600 } },
+    '/src/galleries/other-name/site-c.jpg': { default: { src: '/_astro/site-c.pqr222.jpg', width: 800, height: 600 } },
   },
   pagesCaptions: {},
   contentCaptions: {
-    '/usr/content/blog/my-article/gallery/captions.json': { default: { 'photo2.jpg': 'A custom caption' } },
+    '/src/content/blog/my-article/gallery/captions.json': { default: { 'photo2.jpg': 'A custom caption' } },
   },
   sharedCaptions: {
-    '/usr/galleries/scavi-2024/captions.json': {
+    '/src/galleries/scavi-2024/captions.json': {
       default: {
         'site-a.jpg': 'Exact match caption',
         // Deliberately a different resolution suffix than the real file
@@ -146,7 +146,7 @@ describe('getSharedCaptions', () => {
   function parseMalformedFixture() {
     // Reuses the real function against a manifest entry shaped like a
     // malformed captions.json (nested object instead of Record<string,string>).
-    (manifest.sharedCaptions as any)['/usr/galleries/broken/captions.json'] = { default: { nested: { not: 'a string' } } };
+    (manifest.sharedCaptions as any)['/src/galleries/broken/captions.json'] = { default: { nested: { not: 'a string' } } };
     return getSharedCaptions('broken');
   }
 });

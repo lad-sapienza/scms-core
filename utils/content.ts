@@ -49,7 +49,7 @@ export async function getSortedCollection(
   });
 }
 
-// Menu extraction logic should be implemented in user code (usr/), not in core.
+// Menu extraction logic should be implemented in the consuming site's own code, not here.
 
 /**
  * Parse CSV string to JSON

@@ -31,7 +31,7 @@ export interface UseRecordFetcherResult {
  *
  * @example
  * ```tsx
- * // usr/components/RecordView.tsx
+ * // src/components/RecordView.tsx
  * import { useRecordFetcher } from '@lad-sapienza/scms-core/components/Record/useRecordFetcher';
  *
  * export default function RecordView() {
@@ -45,7 +45,7 @@ export interface UseRecordFetcherResult {
  * ```
  *
  * ```astro
- * <!-- usr/pages/record.astro -->
+ * <!-- src/pages/record.astro -->
  * <RecordView client:load />
  * ```
  */

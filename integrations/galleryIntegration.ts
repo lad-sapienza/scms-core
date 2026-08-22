@@ -22,23 +22,23 @@ const RESOLVED_VIRTUAL_MODULE_ID = '\0' + GALLERY_VIRTUAL_MODULE_ID;
 const IMAGE_EXTENSIONS = '{jpg,jpeg,png,gif,webp,avif,JPG,JPEG,PNG,GIF,WEBP,AVIF}';
 
 export interface GalleryIntegrationOptions {
-  /** Path to page files, relative to the project root. Defaults to 'usr/pages'. */
+  /** Path to page files, relative to the project root. Defaults to 'src/pages'. */
   pagesDir?: string;
-  /** Path to content collections, relative to the project root. Defaults to 'usr/content'. */
+  /** Path to content collections, relative to the project root. Defaults to 'src/content'. */
   contentDir?: string;
-  /** Path to shared galleries, relative to the project root. Defaults to 'usr/galleries'. */
+  /** Path to shared galleries, relative to the project root. Defaults to 'src/galleries'. */
   galleriesDir?: string;
 }
 
-/** Normalize a directory segment into a Vite root-relative glob prefix, e.g. 'usr/pages' -> '/usr/pages'. */
+/** Normalize a directory segment into a Vite root-relative glob prefix, e.g. 'src/pages' -> '/src/pages'. */
 function toRootGlobPrefix(dir: string): string {
   return '/' + dir.replace(/^\/+|\/+$/g, '');
 }
 
 export function buildGalleryVirtualModuleSource(options: GalleryIntegrationOptions = {}): string {
-  const pages = toRootGlobPrefix(options.pagesDir ?? 'usr/pages');
-  const content = toRootGlobPrefix(options.contentDir ?? 'usr/content');
-  const galleries = toRootGlobPrefix(options.galleriesDir ?? 'usr/galleries');
+  const pages = toRootGlobPrefix(options.pagesDir ?? 'src/pages');
+  const content = toRootGlobPrefix(options.contentDir ?? 'src/content');
+  const galleries = toRootGlobPrefix(options.galleriesDir ?? 'src/galleries');
 
   return `
 export const pagesImages = import.meta.glob('${pages}/**/gallery/*.${IMAGE_EXTENSIONS}', { eager: true });

@@ -152,7 +152,7 @@ export function getSharedCaptions(name: string): Record<string, string> | undefi
 /**
  * Images from a `gallery/` folder colocated with the current page/content
  * file, matched by comparing the current URL path against the folder
- * structure under usr/pages/ or usr/content/. Applies captions.json from
+ * structure under src/pages/ or src/content/. Applies captions.json from
  * the same folder, if present.
  *
  * Known limitation (unchanged from before this redesign): if a content
@@ -173,7 +173,7 @@ export function getColocatedGalleryImages(pathname: string): GalleryImage[] {
     .map(([filepath, mod]) => moduleToGalleryImage(filepath, mod, captionLookup));
 }
 
-/** Images from a shared gallery at usr/galleries/<name>/. Applies captions.json from the same folder, if present. */
+/** Images from a shared gallery at src/galleries/<name>/. Applies captions.json from the same folder, if present. */
 export function getSharedGalleryImages(name: string): GalleryImage[] {
   const captions = getSharedCaptions(name);
   const captionLookup = captions ? buildCaptionLookup(captions) : undefined;

@@ -4,11 +4,7 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "strictNullChecks": true,
-    "allowJs": true,
     "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "noEmit": true
-  },
-  "include": ["**/*"],
-  "exclude": ["node_modules", "template"]
+    "resolveJsonModule": true
+  }
 }

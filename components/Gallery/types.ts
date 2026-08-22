@@ -13,7 +13,7 @@ export interface GalleryImage {
 
 export interface GalleryProps {
   /**
-   * Name of a shared gallery under usr/galleries/<name>/
+   * Name of a shared gallery under src/galleries/<name>/
    * If not provided (and `images` isn't either), auto-loads from the
    * `gallery/` folder colocated with the current page/content file.
    */

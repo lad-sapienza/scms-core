@@ -26,17 +26,17 @@ describe('galleryIntegration', () => {
     expect(plugin.resolveId('some/other/id')).toBeUndefined();
   });
 
-  it('generates a virtual module with one static glob per source root, using the default usr/ paths', () => {
+  it('generates a virtual module with one static glob per source root, using the default src/ paths', () => {
     const plugin = getVitePlugin();
     const resolvedId = plugin.resolveId(GALLERY_VIRTUAL_MODULE_ID);
     const source = plugin.load(resolvedId);
 
-    expect(source).toContain("import.meta.glob('/usr/pages/**/gallery/*.");
-    expect(source).toContain("import.meta.glob('/usr/content/**/gallery/*.");
-    expect(source).toContain("import.meta.glob('/usr/galleries/*/*.");
-    expect(source).toContain("import.meta.glob('/usr/pages/**/gallery/captions.json'");
-    expect(source).toContain("import.meta.glob('/usr/content/**/gallery/captions.json'");
-    expect(source).toContain("import.meta.glob('/usr/galleries/*/captions.json'");
+    expect(source).toContain("import.meta.glob('/src/pages/**/gallery/*.");
+    expect(source).toContain("import.meta.glob('/src/content/**/gallery/*.");
+    expect(source).toContain("import.meta.glob('/src/galleries/*/*.");
+    expect(source).toContain("import.meta.glob('/src/pages/**/gallery/captions.json'");
+    expect(source).toContain("import.meta.glob('/src/content/**/gallery/captions.json'");
+    expect(source).toContain("import.meta.glob('/src/galleries/*/captions.json'");
 
     // Every glob call must use { eager: true } — a lazy glob would return
     // dynamic import() functions instead of already-resolved image metadata.
@@ -50,14 +50,14 @@ describe('galleryIntegration', () => {
     expect(plugin.load('/some/unrelated/module.js')).toBeUndefined();
   });
 
-  it('honors custom directory options', () => {
-    const plugin = getVitePlugin({ pagesDir: 'src/pages', contentDir: 'src/content', galleriesDir: 'src/galleries' });
+  it('honors custom directory options, overriding the src/ defaults', () => {
+    const plugin = getVitePlugin({ pagesDir: 'custom/pages', contentDir: 'custom/content', galleriesDir: 'custom/galleries' });
     const source = plugin.load(plugin.resolveId(GALLERY_VIRTUAL_MODULE_ID));
 
-    expect(source).toContain("import.meta.glob('/src/pages/**/gallery/*.");
-    expect(source).toContain("import.meta.glob('/src/content/**/gallery/*.");
-    expect(source).toContain("import.meta.glob('/src/galleries/*/*.");
-    expect(source).not.toContain('/usr/');
+    expect(source).toContain("import.meta.glob('/custom/pages/**/gallery/*.");
+    expect(source).toContain("import.meta.glob('/custom/content/**/gallery/*.");
+    expect(source).toContain("import.meta.glob('/custom/galleries/*/*.");
+    expect(source).not.toContain('/src/');
   });
 });
 

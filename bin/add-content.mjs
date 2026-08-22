@@ -12,8 +12,8 @@ import { execSync } from 'node:child_process';
 // own location says nothing about the consuming site's layout. ROOT_DIR must
 // be the invoking project's root, i.e. wherever the CLI was run from.
 const ROOT_DIR     = process.cwd();
-const CONFIG_FILE  = join(ROOT_DIR, 'usr', 'content.config.ts');
-const CONTENT_BASE = join(ROOT_DIR, 'usr', 'content');
+const CONFIG_FILE  = join(ROOT_DIR, 'src', 'content.config.ts');
+const CONTENT_BASE = join(ROOT_DIR, 'src', 'content');
 
 // ─── Color helpers ────────────────────────────────────────────────────────────
 const G = '\x1b[32m', Y = '\x1b[33m', R = '\x1b[31m';
@@ -43,9 +43,16 @@ const ask = async (prompt) => {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Parse top-level collection keys from export const collections = { ... } */
+/**
+ * Parse top-level collection keys from export const collections = { ... }.
+ * Searches only from the `// Export all collections` marker onward (the real
+ * export always follows it) — a plain whole-file regex would also match
+ * doc-comment examples mentioning the same text earlier in the file.
+ */
 function parseCollections(src) {
-  const m = src.match(/export const collections\s*=\s*\{([^}]+)\}/s);
+  const markerIdx = src.indexOf('// Export all collections');
+  const searchFrom = markerIdx === -1 ? src : src.slice(markerIdx);
+  const m = searchFrom.match(/export const collections\s*=\s*\{([^}]+)\}/s);
   if (!m) return [];
   // Keys may be quoted (e.g. 'my-collection': ...) when the name isn't a
   // valid bare identifier — see toObjectKey() in add-collection.mjs.
@@ -71,7 +78,7 @@ function hasMdx(dir) {
 /** Extract z.object field lines for a named collection from config.ts */
 function parseSchemaFields(src, colName) {
   const pat = new RegExp(
-    `defineCollection\\(\\{.*?base\\s*:\\s*['"]\\./usr/content/${colName}['"].*?z\\.object\\(\\{(.*?)\\}\\)`,
+    `defineCollection\\(\\{.*?base\\s*:\\s*['"]\\./src/content/${colName}['"].*?z\\.object\\(\\{(.*?)\\}\\)`,
     's'
   );
   const m = src.match(pat);
@@ -177,7 +184,7 @@ async function main() {
       continue;
     }
     if (existsSync(join(colDir, raw, `index.${ext}`))) {
-      warn(`File already exists: usr/content/${collection}/${raw}/index.${ext}`);
+      warn(`File already exists: src/content/${collection}/${raw}/index.${ext}`);
       continue;
     }
     slug = raw;
@@ -253,7 +260,7 @@ async function main() {
   console.log(`${G}${B}Done!${X}`);
   console.log('');
   console.log(`  ${B}Next steps:${X}`);
-  console.log(`    1. Open ${B}usr/content/${collection}/${slug}/index.${ext}${X} and write your content`);
+  console.log(`    1. Open ${B}src/content/${collection}/${slug}/index.${ext}${X} and write your content`);
   console.log(`    2. Set ${B}draft: false${X} when the content is ready to publish`);
   console.log(`    3. Run ${B}npm run dev${X} and visit ${B}/${collection}/${slug}${X}`);
   console.log('');

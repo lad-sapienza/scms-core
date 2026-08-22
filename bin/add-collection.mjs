@@ -11,7 +11,7 @@ import { join, relative } from 'node:path';
 // own location says nothing about the consuming site's layout. ROOT_DIR must
 // be the invoking project's root, i.e. wherever the CLI was run from.
 const ROOT_DIR    = process.cwd();
-const CONFIG_FILE = join(ROOT_DIR, 'usr', 'content.config.ts');
+const CONFIG_FILE = join(ROOT_DIR, 'src', 'content.config.ts');
 
 // ─── Color helpers ────────────────────────────────────────────────────────────
 const G = '\x1b[32m', Y = '\x1b[33m', R = '\x1b[31m';
@@ -150,7 +150,7 @@ const entries = (await getCollection('__COL__'))
     {entries.length === 0 && (
       <p class="text-center text-muted mt-5">
         No entries yet — add Markdown files to{' '}
-        <code>usr/content/__COL__/</code> and set <code>draft: false</code>.
+        <code>src/content/__COL__/</code> and set <code>draft: false</code>.
       </p>
     )}
   </main>
@@ -207,7 +207,7 @@ const entries = (await getCollection('__COL__'))
     {entries.length === 0 && (
       <p class="text-center text-muted mt-5">
         No entries yet — add Markdown files to{' '}
-        <code>usr/content/__COL__/</code> and set <code>draft: false</code>.
+        <code>src/content/__COL__/</code> and set <code>draft: false</code>.
       </p>
     )}
   </main>
@@ -254,7 +254,7 @@ const entries = (await getCollection('__COL__'))
     {entries.length === 0 && (
       <p class="text-center text-muted mt-5">
         No entries yet — add Markdown files to{' '}
-        <code>usr/content/__COL__/</code> and set <code>draft: false</code>.
+        <code>src/content/__COL__/</code> and set <code>draft: false</code>.
       </p>
     )}
   </main>
@@ -420,10 +420,15 @@ const { Content } = await render(entry);
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
-  // Parse existing collections
-  const cfgSrc    = readFileSync(CONFIG_FILE, 'utf8');
-  const exportM   = cfgSrc.match(/export const collections\s*=\s*\{([^}]+)\}/s);
-  const existing  = exportM
+  // Parse existing collections. Search only from the `// Export all
+  // collections` marker onward (the real export always follows it) — a plain
+  // whole-file regex would also match doc-comment examples mentioning the
+  // same "export const collections = {...}" text earlier in the file.
+  const cfgSrc     = readFileSync(CONFIG_FILE, 'utf8');
+  const markerIdx  = cfgSrc.indexOf('// Export all collections');
+  const searchFrom = markerIdx === -1 ? cfgSrc : cfgSrc.slice(markerIdx);
+  const exportM    = searchFrom.match(/export const collections\s*=\s*\{([^}]+)\}/s);
+  const existing   = exportM
     ? [...exportM[1].matchAll(/(?:['"]([\w-]+)['"]|(\w+))\s*:/g)].map(m => m[1] ?? m[2])
     : [];
 
@@ -465,14 +470,14 @@ async function main() {
   ok(`Type: ${colType}`);
   rl.close();
 
-  // ─── 1. Update usr/content.config.ts ──────────────────────────────────────
+  // ─── 1. Update src/content.config.ts ──────────────────────────────────────
   const newBlock =
     `\n// Schema for ${colName} entries  [${colType} type]\n` +
     `// TODO: customize the schema fields to match your content structure\n` +
     `const ${varName} = defineCollection({\n` +
     `  loader: glob({\n` +
     `    pattern: '**/*.{md,mdx}',\n` +
-    `    base: './usr/content/${colName}',\n` +
+    `    base: './src/content/${colName}',\n` +
     `  }),\n` +
     `  schema: z.object({\n` +
     `${SCHEMA[colType]}\n` +
@@ -480,20 +485,29 @@ async function main() {
     `});\n`;
 
   const MARKER = '// Export all collections';
-  let cfg = readFileSync(CONFIG_FILE, 'utf8');
-  if (!cfg.includes(MARKER)) error(`Marker '${MARKER}' not found in config.ts`);
+  const cfg = readFileSync(CONFIG_FILE, 'utf8');
+  const markerIndex = cfg.indexOf(MARKER);
+  if (markerIndex === -1) error(`Marker '${MARKER}' not found in config.ts`);
 
-  cfg = cfg.replace(MARKER, newBlock + MARKER);
-  cfg = cfg.replace(
-    /(export const collections\s*=\s*\{)([^}]+)(\};)/s,
+  // Only ever scan/edit the file from the marker onward — the real `export
+  // const collections = {...}` always lives there. Scanning the whole file
+  // for that pattern is fragile: doc-comment examples earlier in the file
+  // (e.g. in the template this script ships against) can contain the exact
+  // same text, and a plain first-match regex would silently edit the
+  // comment instead of the real export.
+  const before = cfg.slice(0, markerIndex);
+  const after = (newBlock + cfg.slice(markerIndex)).replace(
+    // [^}]* (zero or more), not [^}]+ — a fresh scms-create site starts with
+    // an empty `export const collections = {};`, and `+` would fail to match it.
+    /(export const collections\s*=\s*\{)([^}]*)(\};)/s,
     (_, open, inner, close) => `${open}${inner.trimEnd()}\n  ${toObjectKey(colName)}: ${varName},\n${close}`
   );
-  writeFileSync(CONFIG_FILE, cfg, 'utf8');
-  ok('usr/content.config.ts updated');
+  writeFileSync(CONFIG_FILE, before + after, 'utf8');
+  ok('src/content.config.ts updated');
 
   // ─── 2. Sample content file ───────────────────────────────────────────────
   const today      = new Date().toISOString().slice(0, 10);
-  const contentDir = join(ROOT_DIR, 'usr', 'content', colName);
+  const contentDir = join(ROOT_DIR, 'src', 'content', colName);
   mkdirSync(contentDir, { recursive: true });
 
   const SAMPLE_NAME = { blog: 'sample-post.md', docs: 'sample-doc.md', generic: 'sample.md' };
@@ -520,7 +534,7 @@ async function main() {
   ok(relative(ROOT_DIR, samplePath));
 
   // ─── 3. Page templates ────────────────────────────────────────────────────
-  const pagesDir = join(ROOT_DIR, 'usr', 'pages', colName);
+  const pagesDir = join(ROOT_DIR, 'src', 'pages', colName);
   mkdirSync(pagesDir, { recursive: true });
 
   const sub       = (s) => s.replaceAll('__COL__', colName);
@@ -537,9 +551,9 @@ async function main() {
   console.log(`${G}${B}Collection '${colName}' scaffolded successfully!${X}`);
   console.log('');
   console.log(`  ${B}Next steps:${X}`);
-  console.log(`    1. Open ${B}usr/content.config.ts${X} and review the schema for '${colName}'`);
-  console.log(`    2. Edit the page files in ${B}usr/pages/${colName}/${X} to customise the UI`);
-  console.log(`    3. Replace the sample file in ${B}usr/content/${colName}/${X} with real content`);
+  console.log(`    1. Open ${B}src/content.config.ts${X} and review the schema for '${colName}'`);
+  console.log(`    2. Edit the page files in ${B}src/pages/${colName}/${X} to customise the UI`);
+  console.log(`    3. Replace the sample file in ${B}src/content/${colName}/${X} with real content`);
   console.log(`    4. Run ${B}npm run dev${X} and visit ${B}/${colName}${X}`);
   console.log('');
 }
