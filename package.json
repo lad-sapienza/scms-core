@@ -25,12 +25,12 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "astro": "^7.2.4",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "maplibre-gl": "^5.21.0",
     "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3"
+    "@types/react-dom": "^19.2.3",
+    "astro": "^7.2.4",
+    "maplibre-gl": "^5.21.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
   "dependencies": {
     "@astrojs/mdx": "^7.0.7",

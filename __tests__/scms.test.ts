@@ -28,6 +28,17 @@ describe('scms', () => {
     expect(capturedConfig.vite.optimizeDeps.include).toEqual(
       expect.arrayContaining(['react', 'react-dom'])
     );
+
+    // papaparse (CommonJS) and maplibre-gl (UMD despite "type": "module" in
+    // its own package.json) both need explicit pre-bundling once their
+    // importers (CsvSource.tsx, Map.tsx) live in node_modules instead of the
+    // consumer's own source tree — confirmed empirically via real `astro dev`
+    // crashes: "does not provide an export named 'default'" for papaparse,
+    // and an empty module namespace ("Cannot read properties of undefined
+    // (reading 'Map')") for maplibre-gl (2026-08-22). Must stay explicit here.
+    expect(capturedConfig.vite.optimizeDeps.include).toEqual(
+      expect.arrayContaining(['papaparse', 'maplibre-gl'])
+    );
   });
 
   it('includes the content-assets and gallery integrations', () => {

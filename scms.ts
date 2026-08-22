@@ -52,7 +52,22 @@ function scmsViteConfigIntegration(): AstroIntegration {
               dedupe: HOOK_LIBRARIES,
             },
             optimizeDeps: {
-              include: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
+              // papaparse is CommonJS-only (no `module`/`exports` field), and
+              // maplibre-gl's `dist/maplibre-gl.js` is a UMD bundle despite
+              // declaring `"type": "module"` in its own package.json (verified:
+              // it's a `(function(global, factory) {...})` UMD wrapper with zero
+              // `export` statements). When their importers (CsvSource.tsx,
+              // Map.tsx via @vis.gl/react-maplibre's dynamic `import('maplibre-gl')`)
+              // lived inside this project's own source tree, Vite's dev-time
+              // dependency scanner discovered and pre-bundled them automatically,
+              // performing the CJS/UMD→ESM interop conversion. Now that the
+              // importers live in node_modules (this package), Vite's default
+              // scanning no longer picks them up on its own, and the browser gets
+              // served the raw file as if it already were ESM — resulting in
+              // "does not provide an export named 'default'" for papaparse and
+              // an empty module namespace (silently breaking `'Map' in module`)
+              // for maplibre-gl. Both must be pre-bundled explicitly.
+              include: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'papaparse', 'maplibre-gl'],
             },
           },
         });
