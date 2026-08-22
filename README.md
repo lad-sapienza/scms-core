@@ -1,0 +1,73 @@
+# @lad-sapienza/scms-core
+
+Framework components and Astro integrations for [s:CMS](https://github.com/lad-sapienza/sCMS) — the static-site CMS built by [LAD @Sapienza](https://lad.saras.uniroma1.it/).
+
+This package supplies the `core/` framework layer that used to live inside the sCMS template repo itself. A site built with sCMS depends on this package from `node_modules` instead of vendoring/syncing it via git, so updates are ordinary `npm update`s.
+
+## Install
+
+```bash
+npm install @lad-sapienza/scms-core
+```
+
+Peer dependencies (install alongside): `astro`, `react`, `react-dom`, `maplibre-gl`, `@types/react`, `@types/react-dom`.
+
+## Usage
+
+Register the integration in `astro.config.mjs`:
+
+```js
+import { defineConfig } from 'astro/config';
+import { scms } from '@lad-sapienza/scms-core';
+
+export default defineConfig({
+  integrations: [
+    ...scms({
+      // all optional, default to the paths below
+      contentDir: 'usr/content',
+      pagesDir: 'usr/pages',
+      galleriesDir: 'usr/galleries',
+    }),
+  ],
+});
+```
+
+`scms()` bundles content-asset serving, the Gallery virtual module, Expressive Code, MDX, React, and sitemap integrations into one call, and self-registers the Vite `dedupe`/`optimizeDeps` config React and `@tanstack/react-table` need to avoid duplicate-module "Invalid hook call" errors — no extra Vite config required in the consumer.
+
+Import components from the package root in any `.mdx` file:
+
+```mdx
+import { DataTb, Map, Gallery } from '@lad-sapienza/scms-core';
+```
+
+| Component | Description |
+|---|---|
+| `DataTb` | Sortable, filterable, paginated data table |
+| `MapComponent` (`Map`) | Interactive map with MapLibre GL JS |
+| `Gallery` | Responsive image gallery with lightbox |
+| `TableOfContents` | Auto-generated TOC from headings |
+| `ZoteroGeoViewer` | Zotero library visualised on a map |
+| `RecordProvider`, `Field`, `Image`, `RecordFetcher`, `useRecordFetcher` | Build single-record detail pages against Directus |
+| `SearchUI`, `SearchUISimple`, `SearchUIAdvanced` | Field/operator/value search UI (used by `Map`'s `searchInFields`) |
+
+A few components are reachable only via subpath import, not the root barrel — this mirrors the internal layout, no bundler config or `exports` map restricts it:
+
+```js
+import SEO from '@lad-sapienza/scms-core/components/SEO/SEO.astro';
+import BSNavbar from '@lad-sapienza/scms-core/components/BSNavbar';
+import { directusLoader } from '@lad-sapienza/scms-core/integrations/directusLoader';
+```
+
+See each component folder's own `README.md` (`components/DataTb`, `components/Gallery`, `components/ZoteroGeoViewer`, `components/`) for detailed API docs and examples.
+
+## Development
+
+```bash
+npm install
+npm run test        # vitest
+npm run typecheck    # tsc --noEmit
+```
+
+## License
+
+BSD-0-Clause

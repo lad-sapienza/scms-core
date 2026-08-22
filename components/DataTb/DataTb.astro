@@ -1,0 +1,33 @@
+---
+/**
+ * DataTb Astro Wrapper
+ *
+ * Astro component that wraps the React DataTb component
+ * This file exists for documentation and re-export purposes.
+ * In MDX files, import the React component directly with a hydration directive.
+ *
+ * Example usage in MDX:
+ * ```jsx
+ * import { DataTb } from '@lad-sapienza/scms-core/components/DataTb';
+ *
+ * <DataTb csv="/data.csv" searchable pagination client:idle />
+ * ```
+ *
+ * CsvSource / JsonSource / DirectusSource / ApiSource are also exported, but as
+ * headless data-loaders (they render nothing; they call onDataLoad/onLoadingChange/
+ * onError) for building a fully custom table UI — they are not children of
+ * <DataTb>, which has no children/composition API. See the "Headless Source
+ * Components" section of usr/content/docs/components/datatb.mdx.
+ */
+
+// Re-export for convenience. `DataTb` itself is deliberately not re-exported
+// here — a named export called `DataTb` in DataTb.astro's own frontmatter
+// collides with Astro's implicit type for the file (same name as the file),
+// producing a "Duplicate identifier 'DataTb'" build error. Nothing in this
+// project imports DataTb from this file (use `@lad-sapienza/scms-core` or
+// `@lad-sapienza/scms-core/components/DataTb` instead), so this only affects the unused path.
+export { CsvSource, JsonSource, DirectusSource, ApiSource } from './index';
+export type * from './types';
+---
+
+<slot />

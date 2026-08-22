@@ -1,0 +1,65 @@
+---
+/**
+ * Gallery Component
+ *
+ * Renders a responsive image grid with a PhotoSwipe lightbox. Usable from
+ * both .astro files and MDX content bodies (see core/integrations/galleryIntegration.ts
+ * for how auto-loading works without each caller needing its own glob).
+ *
+ * <Gallery />                     colocated: ./gallery/ next to this page/content file
+ * <Gallery name="scavi-2024" />   shared: usr/galleries/scavi-2024/
+ * <Gallery images={[...]} />      explicit: pass images directly (remote, custom order, ...)
+ */
+import { Gallery as GalleryClient } from './Gallery';
+import { getColocatedGalleryImages, getSharedGalleryImages, sortImages } from './galleryUtils';
+import type { GalleryProps } from './types';
+
+const { name, images: explicitImages, reverseSorting = false, columns = { min: 200, max: 1 }, className } = Astro.props as GalleryProps;
+
+// Auto-loaded images (colocated/shared) are always sorted by filename —
+// DESC by default, ASC when reverseSorting is set. Explicit `images` are
+// left in exactly the order the caller gave them, since a custom order is
+// one of the reasons to use that escape hatch in the first place.
+let finalImages;
+
+if (explicitImages && explicitImages.length > 0) {
+  finalImages = explicitImages;
+} else if (name) {
+  finalImages = sortImages(getSharedGalleryImages(name), reverseSorting);
+} else {
+  finalImages = sortImages(getColocatedGalleryImages(Astro.url.pathname), reverseSorting);
+}
+---
+
+{finalImages.length > 0 ? (
+  <GalleryClient
+    images={finalImages}
+    columns={columns}
+    className={className}
+    client:idle
+  />
+) : (
+  <p class="gallery-empty">
+    No images found{name && <> for gallery "<code>{name}</code>"</>}.
+    {!name && !explicitImages && (
+      <> Add images to a <code>gallery/</code> folder next to this page.</>
+    )}
+  </p>
+)}
+
+<style>
+  .gallery-empty {
+    padding: 2rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+    text-align: center;
+    color: #666;
+  }
+
+  .gallery-empty code {
+    background: #e0e0e0;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+  }
+</style>
