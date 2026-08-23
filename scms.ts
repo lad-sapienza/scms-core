@@ -41,6 +41,18 @@ export interface ScmsOptions {
 /** react, react-dom, and any library that calls hooks internally (@tanstack/react-table) — see file doc comment. */
 const HOOK_LIBRARIES = ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'scheduler', '@tanstack/react-table'];
 
+/**
+ * Must match the `localStorage` key `ThemeToggle.tsx` reads/writes — see
+ * that file's doc comment. Sets `data-bs-theme` on `<html>` before first
+ * paint so the page never flashes the wrong theme while React hydrates.
+ *
+ * `ThemeToggle` stores "system" as the *absence* of a key (only "light" or
+ * "dark" are ever written) — so anything other than exactly those two
+ * strings (missing key, or a stale/foreign value) falls back to
+ * `prefers-color-scheme`, matching "system" being the default preference.
+ */
+const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem('scms-theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-bs-theme',t);}catch(e){}})();`;
+
 function scmsViteConfigIntegration(): AstroIntegration {
   return {
     name: 'scms-vite-config',
@@ -76,6 +88,18 @@ function scmsViteConfigIntegration(): AstroIntegration {
   };
 }
 
+/** Injects the anti-FOUC theme-init script into every page's `<head>` — see `THEME_INIT_SCRIPT` above. */
+function scmsThemeInitIntegration(): AstroIntegration {
+  return {
+    name: 'scms-theme-init',
+    hooks: {
+      'astro:config:setup': ({ injectScript }) => {
+        injectScript('head-inline', THEME_INIT_SCRIPT);
+      },
+    },
+  };
+}
+
 export function scms(options: ScmsOptions = {}): AstroIntegration[] {
   const { contentDir, pagesDir, galleriesDir } = options;
 
@@ -91,5 +115,6 @@ export function scms(options: ScmsOptions = {}): AstroIntegration[] {
     react(),
     sitemap(),
     scmsViteConfigIntegration(),
+    scmsThemeInitIntegration(),
   ];
 }

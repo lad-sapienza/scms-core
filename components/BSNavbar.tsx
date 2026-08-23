@@ -279,7 +279,7 @@ const BSNavbar: React.FC<BSNavbarProps> = ({ menuItems, currentPath = "/", cssCl
           aria-expanded={isOpen}
           aria-label="Toggle navigation"
         >
-          {isOpen ? <X size={24} className="text-dark" /> : <Menu size={24} className="text-dark" />}
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
         <div className={`collapse navbar-collapse${isOpen ? " show" : ""}`} id="navbarCollapse">
           <ul className={`navbar-nav ${cssClasses.ul ?? ""}`}>

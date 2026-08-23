@@ -178,6 +178,12 @@ export function DataTb({
 
   return (
     <div className={`datatb-container ${className}`}>
+      <style>{`
+        .datatb-thead {
+          --bs-table-bg: var(--bs-tertiary-bg);
+          --bs-table-color: var(--bs-emphasis-color);
+        }
+      `}</style>
 
       {/* Search input */}
       {searchable && (
@@ -196,7 +202,7 @@ export function DataTb({
       {/* Table */}
       <div className="datatb-table-wrapper table-responsive border rounded shadow-sm">
         <table className="datatb-table table table-sm table-hover mb-0">
-          <thead className="table-light">
+          <thead className="datatb-thead">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header, index) => (

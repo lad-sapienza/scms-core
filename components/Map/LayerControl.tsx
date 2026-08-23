@@ -242,8 +242,8 @@ function LayerControlUI({
           onClick={handleSearchClose}
         >
           <div
-            className="bg-white rounded shadow"
-            style={{ maxHeight: 'calc(100vh - 4rem)', width: '500px', maxWidth: '90vw', margin: '2rem 1rem' }}
+            className="rounded shadow"
+            style={{ backgroundColor: 'var(--bs-tertiary-bg)', maxHeight: 'calc(100vh - 4rem)', width: '500px', maxWidth: '90vw', margin: '2rem 1rem' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="d-flex justify-content-between align-items-center p-3 border-bottom">

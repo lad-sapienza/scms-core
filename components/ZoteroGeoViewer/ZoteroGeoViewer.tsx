@@ -334,6 +334,11 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
 
   return (
     <div className="zotero-geo-viewer">
+      <style>{`
+        .zoterogeo-panel {
+          background-color: var(--bs-tertiary-bg);
+        }
+      `}</style>
       <div className={getLayoutClasses()}>
         {/* Map */}
         <div className={getMapColSpan()}>
@@ -382,7 +387,7 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
         <div className={getControlsColSpan()}>
           <div className="mb-3">
             {/* Library Statistics */}
-            <div className="bg-light rounded p-3 mb-3">
+            <div className="zoterogeo-panel rounded p-3 mb-3">
               <h3 className="fw-semibold mb-3">Library Statistics</h3>
               <div className="row g-3 small">
                 <div className="col-6 text-center">
@@ -397,7 +402,7 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
             </div>
 
             {/* Tag Search */}
-            <div className="bg-white border rounded p-3">
+            <div className="zoterogeo-panel border rounded p-3">
               <h3 className="fw-semibold mb-3">Search Tags</h3>
               <div className="position-relative">
                 <input
@@ -415,7 +420,7 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
                 
                 {/* Simple autocomplete */}
                 {tagAutocomplete && showDropdown && filteredSuggestions.length > 0 && (
-                  <div className="position-absolute w-100 mt-1 bg-white border rounded shadow" style={{zIndex: 1000, maxHeight: '12rem', overflowY: 'auto'}}>
+                  <div className="zoterogeo-panel position-absolute w-100 mt-1 border rounded shadow" style={{zIndex: 1000, maxHeight: '12rem', overflowY: 'auto'}}>
                     {filteredSuggestions.map((tag, index) => (
                       <button
                         key={index}

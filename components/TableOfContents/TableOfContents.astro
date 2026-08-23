@@ -19,7 +19,7 @@ const { maxDepth = 3, minDepth = 2, title = "Table of Contents" } = Astro.props;
 const tocId = `toc-${Math.random().toString(36).substring(7)}`;
 ---
 
-<nav id={tocId} class="toc bg-light border border-secondary rounded p-3 mb-4 shadow-sm">
+<nav id={tocId} class="toc border rounded p-3 mb-4 shadow-sm">
   <h2 class="h5 mb-3 text-secondary">{title}</h2>
   <ul class="toc-list small"></ul>
 </nav>
@@ -27,7 +27,6 @@ const tocId = `toc-${Math.random().toString(36).substring(7)}`;
 <style>
   .toc {
     background-color: var(--bs-light);
-    border-color: var(--bs-secondary);
   }
   
   a.toc-link {

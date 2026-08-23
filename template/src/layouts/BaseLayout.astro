@@ -2,6 +2,7 @@
 import "../styles/global.css"
 import SEO from "@lad-sapienza/scms-core/components/SEO/SEO.astro"
 import BSNavbar from "@lad-sapienza/scms-core/components/BSNavbar"
+import ThemeToggle from "@lad-sapienza/scms-core/components/ThemeToggle"
 import { siteMetadata } from "../user.config.mjs"
 
 interface Props {
@@ -40,6 +41,7 @@ const currentPath = Astro.url.pathname
         cssClasses: "fw-bold",
       }}
     />
+    <ThemeToggle client:load />
 
     <main
       class="container flex-grow-1"
