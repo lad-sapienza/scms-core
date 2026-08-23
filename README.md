@@ -51,6 +51,7 @@ import { DataTb, Map, Gallery } from '@lad-sapienza/scms-core';
 | `MapComponent` (`Map`) | Interactive map with MapLibre GL JS |
 | `Gallery` | Responsive image gallery with lightbox |
 | `TableOfContents` | Auto-generated TOC from headings |
+| `RedirectPage` | Static client-side redirect stub (meta-refresh + JS fallback) for static hosts |
 | `ZoteroGeoViewer` | Zotero library visualised on a map |
 | `RecordProvider`, `Field`, `Image`, `RecordFetcher`, `useRecordFetcher` | Build single-record detail pages against Directus |
 | `SearchUI`, `SearchUISimple`, `SearchUIAdvanced` | Field/operator/value search UI (used by `Map`'s `searchInFields`) |
@@ -63,7 +64,7 @@ import BSNavbar from '@lad-sapienza/scms-core/components/BSNavbar';
 import { directusLoader } from '@lad-sapienza/scms-core/integrations/directusLoader';
 ```
 
-See each component folder's own `README.md` (`components/DataTb`, `components/Gallery`, `components/ZoteroGeoViewer`, `components/`) for detailed API docs and examples.
+See each component folder's own `README.md` (`components/DataTb`, `components/Gallery`, `components/RedirectPage`, `components/ZoteroGeoViewer`, `components/`) for detailed API docs and examples.
 
 ## Creating a new site
 

@@ -1,6 +1,7 @@
 // Core package exports
 export { Gallery } from './components/Gallery';
 export { default as TableOfContents } from './components/TableOfContents/TableOfContents.astro';
+export { default as RedirectPage } from './components/RedirectPage/RedirectPage.astro';
 export { default as ThemeToggle } from './components/ThemeToggle';
 
 // DataTb (recommended table component)

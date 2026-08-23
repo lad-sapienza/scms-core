@@ -1,0 +1,34 @@
+---
+/**
+ * Static client-side redirect stub (meta-refresh + JS), for static hosts
+ * where server-side redirects aren't available (e.g. GitHub Pages). Render
+ * one of these at each old URL to send visitors/search engines/citations to
+ * a new location — typically after a URL scheme change (e.g. adding an
+ * i18n locale prefix) that Astro's own config-level `redirects` can't
+ * express. See `components/RedirectPage/README.md` for when to reach for
+ * this instead of `redirects`, and for the `getStaticPaths` recipe that
+ * generates one of these per entry of a content collection.
+ */
+interface Props {
+  /** Destination URL to redirect to */
+  target: string
+  /** Page title shown briefly before the redirect fires */
+  title?: string
+}
+const { target, title = "Redirecting…" } = Astro.props
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+    <link rel="canonical" href={target} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <p>Redirecting to <a href={target}>{target}</a>…</p>
+    <script is:inline define:vars={{ target }}>
+      window.location.replace(target);
+    </script>
+  </body>
+</html>
