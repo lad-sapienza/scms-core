@@ -326,12 +326,13 @@ export class LayerControlClass implements IControl {
 
     if (hasChanged) {
       this.props = newProps;
-      // Use requestAnimationFrame to ensure the update happens after current execution
-      requestAnimationFrame(() => {
-        if (this.root && this.isAddedToMap) {
-          this.root.render(<LayerControlUI {...this.props} />);
-        }
-      });
+      // Render immediately — this is already called from a useEffect (well
+      // after React's render phase), so there's no synchronous-update
+      // hazard to defer for. Deferring via requestAnimationFrame instead
+      // left a window where the DOM (e.g. a basemap radio's checked state)
+      // visibly lagged behind the already-updated React state, sometimes
+      // indefinitely if the tab wasn't actively painting frames.
+      this.root.render(<LayerControlUI {...this.props} />);
     }
   }
 }
