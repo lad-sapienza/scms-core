@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../i18n';
 
 // Helper to strip two outermost divs from a HTML string
 function stripWrappingDivs(html: string): string {
@@ -32,6 +33,7 @@ interface ZoteroRecordsPreviewProps {
 }
 
 export function ZoteroRecordsPreview({ groupId, tag, maxItems = 1000 }: ZoteroRecordsPreviewProps) {
+  const t = useTranslation();
   const [records, setRecords] = useState<ZoteroItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,19 +123,26 @@ export function ZoteroRecordsPreview({ groupId, tag, maxItems = 1000 }: ZoteroRe
   }, [groupId, tag, maxItems]);
 
   if (!tag || !tag.main) return null;
-  
+
+  // The tag name needs its own <span> styling mid-sentence, so the
+  // translated template is split around a placeholder rather than
+  // interpolated as plain text — same approach as the "link" split used
+  // elsewhere in this project for a translated sentence with inline markup.
+  const TAG_MARKER = '\u0000';
+  const [titleBefore, titleAfter] = t('zoteroGeoViewer.recordsPreview.title', { tag: TAG_MARKER }).split(TAG_MARKER);
+
   return (
     <div className="mt-3">
       <h4 className="h5 fw-semibold">
-        Zotero records for <span className="text-primary">{tag.main}</span>
+        {titleBefore}<span className="text-primary">{tag.main}</span>{titleAfter}
         {tag.alternatives && tag.alternatives.length > 0 && (
           <small className="text-secondary ms-2">{' '}
-            (including: {tag.alternatives.join(", ")})
+            {t('zoteroGeoViewer.recordsPreview.including', { list: tag.alternatives.join(', ') })}
           </small>
         )}
       </h4>
-      {loading && <div className="text-primary">Loading records...</div>}
-      {error && <div className="text-danger">Error: {error}</div>}
+      {loading && <div className="text-primary">{t('zoteroGeoViewer.recordsPreview.loading')}</div>}
+      {error && <div className="text-danger">{t('zoteroGeoViewer.recordsPreview.error', { message: error })}</div>}
       {!loading && records && records.length > 0 && (
         <ol className="mt-3">
           {records.map(item => {
@@ -168,7 +177,7 @@ export function ZoteroRecordsPreview({ groupId, tag, maxItems = 1000 }: ZoteroRe
                       className="small text-primary text-decoration-underline"
                       style={{ whiteSpace: "nowrap" }}
                     >
-                      View in the Zotero Library
+                      {t('zoteroGeoViewer.recordsPreview.viewInLibrary')}
                     </a>
                   </React.Fragment>
                 )}
@@ -178,7 +187,7 @@ export function ZoteroRecordsPreview({ groupId, tag, maxItems = 1000 }: ZoteroRe
         </ol>
       )}
       {!loading && (!records || records.length === 0) && !error && (
-        <div className="text-danger">No records found for this tag.</div>
+        <div className="text-danger">{t('zoteroGeoViewer.recordsPreview.noRecords')}</div>
       )}
     </div>
   );

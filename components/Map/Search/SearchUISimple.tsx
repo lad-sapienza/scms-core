@@ -1,6 +1,7 @@
 import { useState, type SyntheticEvent } from 'react';
 import { Search, X, TextSearch } from 'lucide-react';
 import type { SearchInFields, SearchQuery, SearchFilter } from '../types';
+import { useTranslation } from '../../i18n';
 
 export interface SearchUISimpleProps {
   fieldList: SearchInFields;
@@ -21,6 +22,7 @@ export function SearchUISimple({
   onToggleAdvanced,
   currentQuery 
 }: SearchUISimpleProps) {
+  const t = useTranslation();
   // Extract search text from currentQuery if it exists and is a simple search (all filters have same value)
   const getInitialSearchText = () => {
     if (!currentQuery?.filters?.length) return '';
@@ -67,7 +69,7 @@ export function SearchUISimple({
           <input
             type="text"
             className="form-control form-control-sm"
-            placeholder="Search..."
+            placeholder={t('map.search.placeholder')}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             disabled={isLoading}
@@ -79,34 +81,34 @@ export function SearchUISimple({
           >
             {isLoading ? (
               <span className="spinner-border spinner-border-sm" role="status">
-                <span className="visually-hidden">Loading...</span>
+                <span className="visually-hidden">{t('map.search.loading')}</span>
               </span>
             ) : (
               <Search size={16} />
             )}
-            Search
+            {t('map.search.submit')}
           </button>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="btn btn-secondary btn-sm"
             onClick={handleClear}
             disabled={isLoading || !searchText}
           >
             <X size={16} />
-            Clear
+            {t('map.search.clear')}
           </button>
         </div>
       </form>
-      
+
       {onToggleAdvanced && (
         <div className="text-center">
-          <button 
+          <button
             type="button"
             className="btn btn-sm btn-link"
             onClick={onToggleAdvanced}
           >
             <TextSearch size={16} />
-            Advanced Search
+            {t('map.search.advancedSearch')}
           </button>
         </div>
       )}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ZoteroGeoViewerProps } from './types';
 import { Map } from '../Map';
 import { ZoteroRecordsPreview } from './ZoteroRecordsPreview';
+import { useTranslation } from '../i18n';
 
 // Module-level cache to avoid re-fetching data
 let zoteroCache: Record<string, number> | null = null;
@@ -10,12 +11,15 @@ let coordinateCache: any[] | null = null;
 const COORDINATES_URL = '/data/zoteroTagCoordinates.geojson';
 
 export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
+  // Hooks must run unconditionally, before any of the early error returns below.
+  const t = useTranslation();
+
   // Add error handling for props
   if (!props) {
     return (
       <div className="alert alert-danger">
-        <h3 className="fw-semibold">Error loading Zotero data</h3>
-        <p className="mb-0">Component props are undefined</p>
+        <h3 className="fw-semibold">{t('zoteroGeoViewer.error.title')}</h3>
+        <p className="mb-0">{t('zoteroGeoViewer.error.propsUndefined')}</p>
       </div>
     );
   }
@@ -33,9 +37,9 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
   if (!groupId) {
     return (
       <div className="alert alert-danger">
-        <h3 className="fw-semibold">Error loading Zotero data</h3>
-        <p className="mb-1">Group ID is required</p>
-        <p className="small mb-0">Group ID: {groupId}</p>
+        <h3 className="fw-semibold">{t('zoteroGeoViewer.error.title')}</h3>
+        <p className="mb-1">{t('zoteroGeoViewer.error.groupIdRequired')}</p>
+        <p className="small mb-0">{t('zoteroGeoViewer.groupId', { id: groupId })}</p>
       </div>
     );
   }
@@ -300,10 +304,10 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
     return (
       <div className="d-flex align-items-center justify-content-center p-4">
         <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
+          <span className="visually-hidden">{t('zoteroGeoViewer.loading')}</span>
         </div>
-        <span className="ms-2">Loading Zotero library...</span>
-        <div className="ms-3 small text-secondary">Group ID: {groupId}</div>
+        <span className="ms-2">{t('zoteroGeoViewer.loadingLibrary')}</span>
+        <div className="ms-3 small text-secondary">{t('zoteroGeoViewer.groupId', { id: groupId })}</div>
       </div>
     );
   }
@@ -311,15 +315,15 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
   if (error) {
     return (
       <div className="alert alert-danger">
-        <h3 className="fw-semibold">Error loading Zotero data</h3>
+        <h3 className="fw-semibold">{t('zoteroGeoViewer.error.title')}</h3>
         <p className="small mb-1">{error}</p>
-        <p className="small mb-0">Group ID: {groupId}</p>
+        <p className="small mb-0">{t('zoteroGeoViewer.groupId', { id: groupId })}</p>
       </div>
     );
   }
 
   if (!data || !mapped) {
-    return <div className="p-3 text-secondary">No data loaded</div>;
+    return <div className="p-3 text-secondary">{t('zoteroGeoViewer.noDataLoaded')}</div>;
   }
 
   // Prepare GeoJSON for map
@@ -331,6 +335,16 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
 
   const totalItems = Object.values(data).reduce((sum, count) => sum + count, 0);
   const geoItems = featuresWithGeometry.reduce((sum, f) => sum + (f.properties.zoteroCount || 0), 0);
+
+  // The popup below is built as an HTML string for MapLibre's own template
+  // substitution (its "${propertyName}" syntax, resolved per-feature when a
+  // popup opens — a second, later templating pass, unrelated to this one).
+  // t() runs now, at React render time, so `{count}` here means "substitute
+  // the translated text" — the literal marker string `${zoteroCount}` inside
+  // it is what actually reaches MapLibre, preserved verbatim so it can still
+  // do its own substitution afterwards.
+  const popupItemsLabel = t('zoteroGeoViewer.popup.items', { count: '${zoteroCount}' });
+  const popupShowRecordsLabel = t('zoteroGeoViewer.popup.showRecords', { count: '${zoteroCount}' });
 
   return (
     <div className="zotero-geo-viewer">
@@ -347,7 +361,7 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
             center={mapCenter}
             baseLayers={['EsriSatellite', 'GoogleTerrain', 'Imperium']}
             vectorLayers={mapCenter && geojson && geojson.features.length > 0 ? [{
-              name: 'Zotero Items',
+              name: t('zoteroGeoViewer.layerName'),
               source: { type: 'geojson', data: geojson },
               style: {
                 type: 'circle',
@@ -373,7 +387,7 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
                   'circle-stroke-color': '#ffffff'
                 }
               },
-              popupTemplate: `<h4>\${name}</h4><p>\${altLabel}</p><div class="text-sm mb-2">Items: \${zoteroCount}</div><button style="background-color: #1d4ed8; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" onmouseover="this.style.backgroundColor='#1e40af'" onmouseout="this.style.backgroundColor='#1d4ed8'" type="button" data-tag="\${name}" data-alt-labels="\${altLabel}" onclick="window['${handlerName}'] && window['${handlerName}'](this.dataset.tag, this.dataset.altLabels)">📚 Show \${zoteroCount} records</button>`,
+              popupTemplate: `<h4>\${name}</h4><p>\${altLabel}</p><div class="text-sm mb-2">${popupItemsLabel}</div><button style="background-color: #1d4ed8; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" onmouseover="this.style.backgroundColor='#1e40af'" onmouseout="this.style.backgroundColor='#1d4ed8'" type="button" data-tag="\${name}" data-alt-labels="\${altLabel}" onclick="window['${handlerName}'] && window['${handlerName}'](this.dataset.tag, this.dataset.altLabels)">${popupShowRecordsLabel}</button>`,
               visible: true,
               fitToContent: true
             }] : []}
@@ -388,26 +402,26 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
           <div className="mb-3">
             {/* Library Statistics */}
             <div className="zoterogeo-panel rounded p-3 mb-3">
-              <h3 className="fw-semibold mb-3">Library Statistics</h3>
+              <h3 className="fw-semibold mb-3">{t('zoteroGeoViewer.stats.title')}</h3>
               <div className="row g-3 small">
                 <div className="col-6 text-center">
                   <div className="h4 fw-bold text-primary">{totalItems}</div>
-                  <div className="text-secondary">Total Items</div>
+                  <div className="text-secondary">{t('zoteroGeoViewer.stats.totalItems')}</div>
                 </div>
                 <div className="col-6 text-center">
                   <div className="h4 fw-bold text-success">{geoItems}</div>
-                  <div className="text-secondary">Georeferenced</div>
+                  <div className="text-secondary">{t('zoteroGeoViewer.stats.georeferenced')}</div>
                 </div>
               </div>
             </div>
 
             {/* Tag Search */}
             <div className="zoterogeo-panel border rounded p-3">
-              <h3 className="fw-semibold mb-3">Search Tags</h3>
+              <h3 className="fw-semibold mb-3">{t('zoteroGeoViewer.search.title')}</h3>
               <div className="position-relative">
                 <input
                   type="text"
-                  placeholder="Search for locations..."
+                  placeholder={t('zoteroGeoViewer.search.placeholder')}
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
@@ -437,8 +451,8 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
                         <div className="fw-medium">{tag.label}</div>
                         {tag.alts.length > 0 && (
                           <div className="small text-secondary">
-                            Also: {tag.alts.slice(0, 3).join(', ')}
-                            {tag.alts.length > 3 && ` +${tag.alts.length - 3} more`}
+                            {t('zoteroGeoViewer.search.also', { list: tag.alts.slice(0, 3).join(', ') })}
+                            {tag.alts.length > 3 && ` ${t('zoteroGeoViewer.search.moreCount', { count: tag.alts.length - 3 })}`}
                           </div>
                         )}
                       </button>
@@ -456,7 +470,7 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
                   }}
                   className="mt-2 small btn btn-link p-0"
                 >
-                  Clear search
+                  {t('zoteroGeoViewer.search.clearSearch')}
                 </button>
               )}
             </div>
@@ -464,14 +478,14 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
             {/* Selected tag info */}
             {selectedTag && (
               <div className="alert alert-info">
-                <h4 className="fw-semibold alert-heading">Selected: {selectedTag.main}</h4>
+                <h4 className="fw-semibold alert-heading">{t('zoteroGeoViewer.search.selected', { tag: selectedTag.main })}</h4>
                 {selectedTag.alternatives.length > 0 && (
                   <p className="small mb-1">
-                    Also includes: {selectedTag.alternatives.join(', ')}
+                    {t('zoteroGeoViewer.search.alsoIncludes', { list: selectedTag.alternatives.join(', ') })}
                   </p>
                 )}
                 <p className="small mb-0">
-                  Use the map markers to explore items at this location.
+                  {t('zoteroGeoViewer.search.helpText')}
                 </p>
               </div>
             )}

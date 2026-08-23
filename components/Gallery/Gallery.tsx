@@ -7,6 +7,7 @@
 
 import { Gallery as PhotoSwipeGallery, Item } from 'react-photoswipe-gallery';
 import type { GalleryImage } from './types';
+import { useTranslation } from '../i18n';
 import 'photoswipe/dist/photoswipe.css';
 
 interface Props {
@@ -43,6 +44,8 @@ export function Gallery({
   columns = { min: 200, max: 1 },
   className = '',
 }: Props) {
+  const t = useTranslation();
+
   if (images.length === 0) {
     return null;
   }
@@ -112,7 +115,7 @@ export function Gallery({
                   tabIndex={0}
                   style={{ cursor: 'pointer', overflow: 'hidden', borderRadius: '4px' }}
                   data-caption={image.caption || image.alt}
-                  aria-label={`Open image: ${image.alt}`}
+                  aria-label={t('gallery.openImage', { alt: image.alt })}
                 >
                   <img
                     src={image.thumb}

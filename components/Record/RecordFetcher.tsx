@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { ComponentType } from 'react';
+import { useTranslation } from '../i18n';
 
 export interface RecordFetcherProps {
   /** Directus base URL. Defaults to PUBLIC_DIRECTUS_URL env var. */
@@ -23,17 +24,19 @@ export interface RecordFetcherProps {
 }
 
 function DefaultLoading() {
+  const t = useTranslation();
   return (
     <div style={{ padding: '2rem', opacity: 0.5 }}>
-      Loading record&hellip;
+      {t('record.loading')}
     </div>
   );
 }
 
 function DefaultError({ table, id }: { table: string; id: string }) {
+  const t = useTranslation();
   return (
     <div style={{ padding: '2rem', color: 'red' }}>
-      Record not found for table &ldquo;{table}&rdquo; with ID &ldquo;{id}&rdquo;.
+      {t('record.notFound', { table, id })}
     </div>
   );
 }

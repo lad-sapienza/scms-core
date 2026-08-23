@@ -1,7 +1,7 @@
 import { useState, type SyntheticEvent } from 'react';
 import { Search, X, Plus, Minus, ArrowLeft } from 'lucide-react';
 import type { SearchInFields, SearchQuery, SearchFilter, SearchOperators } from '../types';
-import { DEFAULT_OPERATORS, DEFAULT_CONNECTORS } from './SearchOperators';
+import { useTranslation } from '../../i18n';
 
 export interface SearchUIAdvancedProps {
   fieldList: SearchInFields;
@@ -24,8 +24,33 @@ export function SearchUIAdvanced({
   onToggleSimple,
   currentQuery 
 }: SearchUIAdvancedProps) {
-  const mergedOperators = { ...DEFAULT_OPERATORS, ...operators };
-  
+  const t = useTranslation();
+  // Translated defaults for the operator/connector *labels* only — the
+  // underscore-prefixed keys are Directus's own filter-operator wire
+  // format, unaffected by translation. An explicit `operators` prop still
+  // overrides these, same precedence as before.
+  const translatedOperators: SearchOperators = {
+    _eq: t('map.search.operators.eq'),
+    _neq: t('map.search.operators.neq'),
+    _lt: t('map.search.operators.lt'),
+    _lte: t('map.search.operators.lte'),
+    _gt: t('map.search.operators.gt'),
+    _gte: t('map.search.operators.gte'),
+    _null: t('map.search.operators.null'),
+    _nnull: t('map.search.operators.nnull'),
+    _contains: t('map.search.operators.contains'),
+    _icontains: t('map.search.operators.icontains'),
+    _ncontains: t('map.search.operators.ncontains'),
+    _starts_with: t('map.search.operators.startsWith'),
+    _istarts_with: t('map.search.operators.istartsWith'),
+    _nstarts_with: t('map.search.operators.nstartsWith'),
+    _ends_with: t('map.search.operators.endsWith'),
+    _iends_with: t('map.search.operators.iendsWith'),
+    _nends_with: t('map.search.operators.nendsWith'),
+  };
+  const translatedConnectors = { _and: t('map.search.connectors.and'), _or: t('map.search.connectors.or') };
+  const mergedOperators = { ...translatedOperators, ...operators };
+
   // Initialize state from currentQuery if provided
   const getInitialConnector = (): '_and' | '_or' => {
     return currentQuery?.connector || '_and';
@@ -140,7 +165,7 @@ export function SearchUIAdvanced({
                   onChange={(e) => setConnector(e.target.value as '_and' | '_or')}
                   className="form-check-input"
                 />
-                <span className="small">{DEFAULT_CONNECTORS._and}</span>
+                <span className="small">{translatedConnectors._and}</span>
               </label>
               
               <label className="d-flex align-items-center gap-2">
@@ -152,7 +177,7 @@ export function SearchUIAdvanced({
                   onChange={(e) => setConnector(e.target.value as '_and' | '_or')}
                   className="form-check-input"
                 />
-                <span className="small">{DEFAULT_CONNECTORS._or}</span>
+                <span className="small">{translatedConnectors._or}</span>
               </label>
             </div>
           </div>
@@ -226,7 +251,7 @@ export function SearchUIAdvanced({
                 className="btn btn-danger btn-sm"
                 onClick={() => removeFilter(index)}
                 disabled={isLoading || filters.length === 1}
-                title={filters.length === 1 ? "Cannot remove the last filter" : "Remove filter"}
+                title={filters.length === 1 ? t('map.search.cannotRemoveLastFilter') : t('map.search.removeFilter')}
               >
                 <Minus size={16} />
               </button>
@@ -243,34 +268,34 @@ export function SearchUIAdvanced({
             disabled={isLoading}
           >
             <Plus size={16} />
-            Add Filter
+            {t('map.search.addFilter')}
           </button>
         </div>
 
         {/* Actions */}
         <div className="d-flex gap-2 mt-3">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn btn-primary btn-sm"
             disabled={isLoading}
           >
             {isLoading ? (
               <span className="spinner-border spinner-border-sm" role="status">
-                <span className="visually-hidden">Loading...</span>
+                <span className="visually-hidden">{t('map.search.loading')}</span>
               </span>
             ) : (
               <Search size={16} />
             )}
-            Search
+            {t('map.search.submit')}
           </button>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="btn btn-secondary btn-sm"
             onClick={handleClear}
             disabled={isLoading || !hasFilters()}
           >
             <X size={16} />
-            Clear
+            {t('map.search.clear')}
           </button>
           {onToggleSimple && (
             <button 
@@ -279,7 +304,7 @@ export function SearchUIAdvanced({
               onClick={onToggleSimple}
             >
               <ArrowLeft size={16} />
-              Simple Search
+              {t('map.search.simpleSearch')}
             </button>
           )}
         </div>

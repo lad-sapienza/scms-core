@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Menu, X, ChevronRight } from "lucide-react";
+import { useTranslation } from "./i18n";
 
 /**
  * A single navigation link entry.
@@ -228,6 +229,7 @@ const NavItem: React.FC<{ item: MenuItem; currentPath: string; liClass?: string 
 // BSNavbar — root component
 // ---------------------------------------------------------------------------
 const BSNavbar: React.FC<BSNavbarProps> = ({ menuItems, currentPath = "/", cssClasses = {}, brand }) => {
+  const t = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -277,7 +279,7 @@ const BSNavbar: React.FC<BSNavbarProps> = ({ menuItems, currentPath = "/", cssCl
           onClick={() => setIsOpen(prev => !prev)}
           aria-controls="navbarCollapse"
           aria-expanded={isOpen}
-          aria-label="Toggle navigation"
+          aria-label={t('navbar.toggleNavigation')}
         >
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>

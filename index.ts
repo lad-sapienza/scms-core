@@ -18,6 +18,10 @@ export type { ZoteroGeoViewerProps, ZoteroItem, CoordinateData, LayoutType } fro
 export { RecordProvider, Field, Image, RecordFetcher, useRecordFetcher, getValueByDotPath } from './components/Record';
 export type { RecordProviderProps, FieldProps, ImageProps, RecordFetcherProps, UseRecordFetcherOptions, UseRecordFetcherResult } from './components/Record';
 
+// i18n helpers
+export { useTranslation, createTranslator, BUILTIN_DICTIONARY, I18nInit } from './components/i18n';
+export type { Dictionary, Translator, TranslatorConfig, ScmsI18nGlobal } from './components/i18n';
+
 // Utils
 export * from './utils/record-fetcher';
 // Note: content utils not exported to prevent astro:content in client components

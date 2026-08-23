@@ -1,0 +1,36 @@
+---
+import type { Dictionary } from './translator';
+
+/**
+ * Writes the current page's locale/dictionary to `window.__scmsI18n` —
+ * see `window.ts` for why this is a plain global instead of React Context.
+ * Render this once in the site's `BaseLayout.astro`, before any component
+ * island that calls `useTranslation()` (e.g. before `<DataTb>`), so the
+ * global is set before that island hydrates.
+ *
+ * A site that isn't multilingual simply never renders this — every
+ * component's `useTranslation()` then falls back to scms-core's built-in
+ * English strings automatically, with no configuration needed.
+ *
+ * @example
+ * ```astro
+ * <I18nInit locale={locale} defaultLocale="en" dictionary={dictionary} />
+ * ```
+ */
+interface Props {
+  /** The current page's locale. */
+  locale: string;
+  /** The site's default locale. */
+  defaultLocale: string;
+  /** The site's own dictionary for `locale` (optional overrides/additions over the built-in defaults). */
+  dictionary?: Dictionary;
+  /** The site's own dictionary for `defaultLocale`, if different from `dictionary`. */
+  defaultDictionary?: Dictionary;
+}
+
+const { locale, defaultLocale, dictionary, defaultDictionary } = Astro.props;
+const payload = JSON.stringify({ locale, defaultLocale, dictionary, defaultDictionary });
+---
+<script is:inline define:vars={{ payload }}>
+  window.__scmsI18n = JSON.parse(payload);
+</script>

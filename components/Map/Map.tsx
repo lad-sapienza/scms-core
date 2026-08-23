@@ -18,6 +18,7 @@ import type { BaseLayerConfig } from './types';
 import { defaultBasemaps, getBasemap } from './defaultBasemaps';
 import { fetchData } from '../../utils/data-fetcher';
 import { dataToGeoJson, parseStringTemplate, filterObjectToPredicate, searchQueryToMapLibreFilter, searchQueryToPredicate } from './utils';
+import { useTranslation } from '../i18n';
 import type { FeatureCollection } from 'geojson';
 import type { CircleLayerSpecification } from 'maplibre-gl';
 import type { SearchQuery } from './types';
@@ -42,6 +43,7 @@ export function Map({
   json,
   directus,
 }: MapProps) {
+  const t = useTranslation();
   const [lng, lat, zoom] = center.split(',').map(Number);
   const [activeBaseLayer, setActiveBaseLayer] = useState<number>(0);
   const [layersData, setLayersData] = useState<Record<string, FeatureCollection>>({});
@@ -242,7 +244,7 @@ export function Map({
     }
     
     if (implicitSource) {
-      let layerName = 'Default Layer';
+      let layerName = t('map.defaultLayerName');
       const layerConfig: any = {
         name: layerName,
         source: implicitSource,

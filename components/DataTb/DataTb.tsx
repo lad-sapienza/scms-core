@@ -17,6 +17,7 @@ import {
   type ColumnFiltersState,
 } from '@tanstack/react-table';
 import { fetchData } from '../../utils/data-fetcher';
+import { useTranslation } from '../i18n';
 import type { DataRow, DataTbProps } from './types';
 import {
   autoDetectColumns,
@@ -33,13 +34,18 @@ export function DataTb({
   initialSort,
   className = '',
   source,
-  loadingMessage = 'Loading data...',
-  emptyMessage = 'No data available',
-  errorMessage = 'Error loading data',
+  loadingMessage,
+  emptyMessage,
+  errorMessage,
   truncateContent = true,
   truncateMaxWidth = '20rem',
   contentSize = 'sm',
 }: DataTbProps) {
+  const t = useTranslation();
+  const resolvedLoadingMessage = loadingMessage ?? t('dataTb.loading');
+  const resolvedEmptyMessage = emptyMessage ?? t('dataTb.empty');
+  const resolvedErrorMessage = errorMessage ?? t('dataTb.error');
+
   const [data, setData] = useState<DataRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -148,7 +154,7 @@ export function DataTb({
     return (
       <div className="datatb-container">
         <div className="datatb-loading p-4 text-center text-secondary">
-          {loadingMessage}
+          {resolvedLoadingMessage}
         </div>
       </div>
     );
@@ -159,7 +165,7 @@ export function DataTb({
     return (
       <div className="datatb-container">
         <div className="datatb-error p-4 text-center text-danger">
-          {errorMessage}: {error.message}
+          {resolvedErrorMessage}: {error.message}
         </div>
       </div>
     );
@@ -170,7 +176,7 @@ export function DataTb({
     return (
       <div className="datatb-container">
         <div className="datatb-empty p-4 text-center text-secondary">
-          {emptyMessage}
+          {resolvedEmptyMessage}
         </div>
       </div>
     );
@@ -192,7 +198,7 @@ export function DataTb({
             type="text"
             value={globalFilter ?? ''}
             onChange={(e) => setGlobalFilter(e.target.value)}
-            placeholder="Search..."
+            placeholder={t('dataTb.searchPlaceholder')}
             className="form-control form-control-sm"
             style={{ maxWidth: '24rem' }}
           />
@@ -315,7 +321,10 @@ export function DataTb({
 
           <div className="d-flex align-items-center gap-2 flex-nowrap">
             <span className="small text-secondary text-nowrap">
-              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+              {t('dataTb.paginationSummary', {
+                page: table.getState().pagination.pageIndex + 1,
+                totalPages: table.getPageCount(),
+              })}
             </span>
 
             {paginationConfig.showPageSize !== false && (
@@ -336,7 +345,7 @@ export function DataTb({
             )}
 
             <span className="small text-secondary text-nowrap">
-              ({data.length} total)
+              {t('dataTb.rowsTotal', { count: data.length })}
             </span>
           </div>
         </div>

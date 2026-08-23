@@ -5,6 +5,7 @@ import { Layers, Search, X } from 'lucide-react';
 import type { IControl } from 'maplibre-gl';
 import type { BaseLayerConfig, VectorLayerConfig, ControlPosition, SearchInFields, SearchQuery } from './types';
 import { SearchUI } from './Search';
+import { useTranslation } from '../i18n';
 
 export interface LayerControlProps {
   baseLayers?: BaseLayerConfig[];
@@ -29,6 +30,7 @@ function LayerControlUI({
   onLayerSearch,
   layerSearchQueries = {},
 }: Omit<LayerControlProps, 'position'>) {
+  const t = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchModal, setSearchModal] = useState<{isOpen: boolean, layerId: string, layerName: string, fieldList: SearchInFields, currentQuery?: SearchQuery} | null>(null);
   const radioGroupId = React.useId();
@@ -173,7 +175,7 @@ function LayerControlUI({
                       className={`btn btn-sm p-1 lh-1 border-0 ${
                         layerSearchQueries[layer.id]?.filters?.length ? 'btn-primary' : 'btn-light'
                       }`}
-                      title={`Search ${layer.name}${layerSearchQueries[layer.id]?.filters?.length ? ' (Active)' : ''}`}
+                      title={`${t('map.searchLayer', { name: layer.name })}${layerSearchQueries[layer.id]?.filters?.length ? ` ${t('map.active')}` : ''}`}
                     >
                       <Search size={14} />
                     </button>
@@ -188,7 +190,7 @@ function LayerControlUI({
           {baseLayers.length > 0 && (
             <div>
               <div style={{ fontSize: '11px', color: '#666', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase' }}>
-                Base Maps
+                {t('map.baseMaps')}
               </div>
               {baseLayers.map((layer, index) => {
                 const isChecked = index === activeBaseLayer;
@@ -249,12 +251,12 @@ function LayerControlUI({
             <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
               <h3 className="h5 fw-semibold mb-0 d-flex align-items-center gap-2 flex-grow-1 pe-2">
                 <Search size={18} />
-                Search {searchModal.layerName}
+                {t('map.searchLayer', { name: searchModal.layerName })}
               </h3>
               <button
                 onClick={handleSearchClose}
                 className="btn btn-sm btn-light flex-shrink-0"
-                aria-label="Close modal"
+                aria-label={t('map.closeModal')}
               >
                 <X size={18} />
               </button>

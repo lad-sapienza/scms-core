@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { SearchInFields, SearchQuery, SearchOperators } from '../types';
 import { SearchUISimple } from './SearchUISimple';
 import { SearchUIAdvanced } from './SearchUIAdvanced';
+import { useTranslation } from '../../i18n';
 
 export interface SearchUIProps {
   fieldList: SearchInFields;
@@ -24,6 +25,7 @@ export function SearchUI({
   limitTo,
   currentQuery 
 }: SearchUIProps) {
+  const t = useTranslation();
   const [isAdvanced, setIsAdvanced] = useState(limitTo === 'advanced');
 
   const toggleMode = () => {
@@ -34,7 +36,7 @@ export function SearchUI({
   if (!fieldList || Object.keys(fieldList).length === 0) {
     return (
       <div className="text-danger small">
-        No searchable fields configured for this layer.
+        {t('map.search.noFieldsConfigured')}
       </div>
     );
   }
@@ -47,7 +49,7 @@ export function SearchUI({
       {isLoading && (
         <div className="text-center mb-3">
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
+            <span className="visually-hidden">{t('map.search.loading')}</span>
           </div>
         </div>
       )}
