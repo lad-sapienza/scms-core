@@ -31,35 +31,11 @@ if (explicitImages && explicitImages.length > 0) {
 }
 ---
 
-{finalImages.length > 0 ? (
+{finalImages.length > 0 && (
   <GalleryClient
     images={finalImages}
     columns={columns}
     className={className}
     client:idle
   />
-) : (
-  <p class="gallery-empty">
-    No images found{name && <> for gallery "<code>{name}</code>"</>}.
-    {!name && !explicitImages && (
-      <> Add images to a <code>gallery/</code> folder next to this page.</>
-    )}
-  </p>
 )}
-
-<style>
-  .gallery-empty {
-    padding: 2rem;
-    background: #f5f5f5;
-    border-radius: 8px;
-    text-align: center;
-    color: #666;
-  }
-
-  .gallery-empty code {
-    background: #e0e0e0;
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-family: monospace;
-  }
-</style>
