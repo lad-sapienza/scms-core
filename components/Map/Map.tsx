@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import MapLibreMap, {
   NavigationControl,
   FullscreenControl,
@@ -310,20 +310,34 @@ export function Map({
   }, [allVectorLayers]);
 
   // Handle vector layer visibility toggle
-  const handleVectorLayerToggle = (layerId: string) => {
+  //
+  // Wrapped in useCallback (both here and below) so its identity stays
+  // stable across renders — it's one of two functions passed into the
+  // "add LayerControl as an IControl" effect's dependency array. Left as a
+  // plain function, it got a new reference on *every* render (including
+  // the one triggered by clicking a basemap radio, since that sets
+  // activeBaseLayer state on this very component), which spuriously
+  // refired that effect on every click. Each refire tore down the old
+  // IControl and created a fresh one — and since the cleanup removed
+  // whatever layerControlRef.current happened to point to *at cleanup
+  // time* rather than the specific instance being torn down, the freshly
+  // created (correct) control was the one actually getting removed a tick
+  // later, leaving the stale first control (still showing the original
+  // basemap selected) as the only one left on the map.
+  const handleVectorLayerToggle = useCallback((layerId: string) => {
     setVectorLayerVisibility(prev => ({
       ...prev,
       [layerId]: !prev[layerId]
     }));
-  };
+  }, []);
 
-  // Handle search for vector layers
-  const handleLayerSearch = (layerId: string, query: SearchQuery) => {
+  // Handle search for vector layers — see handleVectorLayerToggle above.
+  const handleLayerSearch = useCallback((layerId: string, query: SearchQuery) => {
     setLayerSearchQueries(prev => ({
       ...prev,
       [layerId]: query
     }));
-  };
+  }, []);
 
   // Load data for all vector layers
   useEffect(() => {
@@ -467,13 +481,14 @@ export function Map({
     map.addControl(control, position);
 
     return () => {
-      if (layerControlRef.current && map) {
-        setTimeout(() => {
-          if (layerControlRef.current && map) {
-            map.removeControl(layerControlRef.current);
-          }
-        }, 0);
-      }
+      // Remove this specific control instance, not whatever
+      // layerControlRef.current happens to point to when the timeout
+      // fires — if this effect ever refires before the timeout runs, the
+      // ref will already point at the *new* control, and reading it here
+      // would remove that one instead of this (correct) cleanup target.
+      setTimeout(() => {
+        map.removeControl(control);
+      }, 0);
     };
   }, [mapLoaded, layerControl, resolvedBaseLayers, allVectorLayers.length, handleLayerSearch]);
 
