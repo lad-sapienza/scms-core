@@ -127,12 +127,48 @@ const normalizePath = (pathname: string): string => pathname.replace(/\/$/, '');
 const COLOCATED_GALLERY_PATTERN = /\/(pages|content)(.+)\/gallery\//;
 const SHARED_GALLERY_PATTERN = /\/galleries\/([^/]+)\//;
 
+/**
+ * Matches a URL path against a colocated asset's captured content path,
+ * tolerating locale-prefixed routing (`src/pages/[locale]/...`) on top of
+ * the exact match every non-i18n site already relies on.
+ *
+ * Tried only when the exact match fails, so plain (non-i18n) sites are
+ * completely unaffected. Two things can differ once a `[locale]` layer is
+ * involved:
+ *
+ * 1. Position — the URL puts the locale first ("/it/blog/foo"), but a
+ *    locale-per-directory content tree nests it one level inside the
+ *    collection folder instead ("/blog/it/foo", from
+ *    `src/content/blog/it/foo/gallery/*`).
+ * 2. Value — when a translation is missing and the site falls back to
+ *    rendering the default-locale entry under another locale's URL (e.g.
+ *    "/it/blog/foo" rendering the "en" content, whose images physically
+ *    live under ".../blog/en/foo/gallery/"), the locale segment itself
+ *    differs between the two paths, not just its position.
+ *
+ * Both are handled by dropping the assumed locale segment from each side —
+ * position 0 on the URL, position 1 on the content path (right after the
+ * collection name) — and comparing what's left: the actual content-identifying
+ * segments, locale-independent.
+ */
+function matchesColocatedPath(urlPath: string, contentCapturedPath: string): boolean {
+  if (urlPath === contentCapturedPath) return true;
+
+  const urlSegments = urlPath.split('/').filter(Boolean);
+  const contentSegments = contentCapturedPath.split('/').filter(Boolean);
+  if (urlSegments.length < 1 || contentSegments.length < 2) return false;
+
+  const urlRest = urlSegments.slice(1).join('/');
+  const contentRest = [contentSegments[0], ...contentSegments.slice(2)].join('/');
+  return urlRest === contentRest;
+}
+
 export function getColocatedCaptions(pathname: string): Record<string, string> | undefined {
   const normalized = normalizePath(pathname);
   const allCaptions = { ...manifest.pagesCaptions, ...manifest.contentCaptions };
   const entry = Object.entries(allCaptions).find(([filepath]) => {
     const match = filepath.match(COLOCATED_GALLERY_PATTERN);
-    return !!match && normalized === match[2];
+    return !!match && matchesColocatedPath(normalized, match[2]);
   });
   if (!entry) return undefined;
   const [filepath, mod] = entry;
@@ -158,7 +194,8 @@ export function getSharedCaptions(name: string): Record<string, string> | undefi
  * Known limitation (unchanged from before this redesign): if a content
  * collection entry overrides its slug, or the site has a non-root `base`,
  * the URL path diverges from the on-disk folder path and matching silently
- * finds nothing.
+ * finds nothing. Locale-prefixed routing (`/it/blog/foo` vs. an on-disk
+ * `blog/it/foo`) is handled — see `matchesColocatedPath` above.
  */
 export function getColocatedGalleryImages(pathname: string): GalleryImage[] {
   const normalized = normalizePath(pathname);
@@ -168,7 +205,7 @@ export function getColocatedGalleryImages(pathname: string): GalleryImage[] {
   return Object.entries(allImages)
     .filter(([filepath]) => {
       const match = filepath.match(COLOCATED_GALLERY_PATTERN);
-      return !!match && normalized === match[2];
+      return !!match && matchesColocatedPath(normalized, match[2]);
     })
     .map(([filepath, mod]) => moduleToGalleryImage(filepath, mod, captionLookup));
 }

@@ -7,6 +7,7 @@ const manifest = {
   contentImages: {
     '/src/content/blog/my-article/gallery/photo2.jpg': { default: { src: '/_astro/photo2.def456.jpg', width: 1000, height: 600 } },
     '/src/content/blog/other-article/gallery/photo3.jpg': { default: { src: '/_astro/photo3.ghi789.jpg', width: 900, height: 500 } },
+    '/src/content/blog/en/localized-article/gallery/photo4.jpg': { default: { src: '/_astro/photo4.stu333.jpg', width: 700, height: 400 } },
   },
   sharedImages: {
     '/src/galleries/scavi-2024/site-a.jpg': { default: { src: '/_astro/site-a.jkl000.jpg', width: 800, height: 600 } },
@@ -54,6 +55,26 @@ describe('getColocatedGalleryImages', () => {
     const images = getColocatedGalleryImages('/blog/my-article');
     expect(images).toHaveLength(1);
     expect(images[0].src).toBe('/_astro/photo2.def456.jpg');
+  });
+
+  it('matches a locale-prefixed URL against a content tree with locale nested inside the collection folder', () => {
+    // On disk: /content/blog/en/localized-article/gallery/... (locale nested
+    // inside the collection). URL for a [locale] dynamic route puts the
+    // locale first instead: /en/blog/localized-article. Same segments,
+    // different order — see `matchesColocatedPath` in galleryUtils.ts.
+    const images = getColocatedGalleryImages('/en/blog/localized-article');
+    expect(images).toHaveLength(1);
+    expect(images[0].src).toBe('/_astro/photo4.stu333.jpg');
+  });
+
+  it('matches even when the URL locale differs from the content locale (missing-translation fallback)', () => {
+    // A site falling back to default-locale content for a missing
+    // translation renders the "en" entry under another locale's URL, e.g.
+    // "/it/blog/localized-article" — the locale segment differs in value,
+    // not just position, between the URL and the on-disk content path.
+    const images = getColocatedGalleryImages('/it/blog/localized-article');
+    expect(images).toHaveLength(1);
+    expect(images[0].src).toBe('/_astro/photo4.stu333.jpg');
   });
 
   it('handles a trailing slash the same as without one', () => {

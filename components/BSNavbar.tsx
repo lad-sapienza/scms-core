@@ -100,7 +100,10 @@ interface BSNavbarProps {
 function isItemActive(item: MenuItem, currentPath: string): boolean {
   const target = item.match ?? item.href;
   if (target) {
-    const active = target === "/" ? currentPath === "/" : currentPath.startsWith(target);
+    // A target ending in "/" is an index page (e.g. "/" itself, or a
+    // locale-prefixed home like "/it/") — match it exactly, otherwise
+    // startsWith would make it "active" for every page beneath it too.
+    const active = target.endsWith("/") ? currentPath === target : currentPath.startsWith(target);
     if (active) return true;
   }
   return item.children?.some(child => isItemActive(child, currentPath)) ?? false;
