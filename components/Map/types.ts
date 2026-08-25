@@ -71,30 +71,62 @@ export interface BaseLayerConfig {
   name: string;
   url: string;
   attribution?: string;
+  /** Tile size in pixels, for services that don't use 256px tiles (default: 256) */
+  tileSize?: number;
 }
 
-export interface VectorLayerConfig {
+/**
+ * XYZ raster tile source — for a raster layer used as an independent,
+ * toggleable overlay rather than a radio-exclusive basemap.
+ */
+export interface XyzSourceConfig {
+  type: 'xyz';
+  /** Tile URL template with {z}/{x}/{y}, optionally {s} (expanded to a/b/c) */
+  url: string;
+  tileSize?: number;
+  attribution?: string;
+}
+
+/**
+ * WMS raster source — builds a GetMap tile URL template from friendly params.
+ */
+export interface WmsSourceConfig {
+  type: 'wms';
+  /** WMS endpoint base URL */
+  url: string;
+  /** GetMap LAYERS param */
+  layers: string;
+  format?: string;
+  version?: string;
+  transparent?: boolean;
+  styles?: string;
+  crs?: string;
+  tileSize?: number;
+  attribution?: string;
+}
+
+export interface OverlayLayerConfig {
   /** Layer name/ID */
   name: string;
-  
+
   /** Data source configuration */
-  source: SourceConfig;
-  
+  source: SourceConfig | XyzSourceConfig | WmsSourceConfig;
+
   /** Layer style (MapLibre paint/layout properties) */
   style?: any;
-  
+
   /** Popup template string (e.g., "<b>${Title}</b>: ${Description}") */
   popupTemplate?: string;
-  
+
   /** Initial visibility */
   visible?: boolean;
-  
+
   /** Fit map bounds to layer content */
   fitToContent?: boolean;
 
   /** Optional client-side filter for features */
   filter?: FilterObject | ((feature: any) => boolean);
-  
+
   /** Search configuration - defines which fields are searchable */
   searchInFields?: SearchInFields;
 }
@@ -128,8 +160,8 @@ export interface MapProps {
   /** Base layers configuration (can be array of configs or array of basemap keys) */
   baseLayers?: BaseLayerConfig[] | BasemapKey[];
   
-  /** Vector layers configuration (alternative to children for hydration-safe usage) */
-  vectorLayers?: VectorLayerConfig[];
+  /** Overlay layers configuration (alternative to children for hydration-safe usage) */
+  overlayLayers?: OverlayLayerConfig[];
   
   /** Controls positions (null/undefined to hide) */
   geolocateControl?: ControlPosition;

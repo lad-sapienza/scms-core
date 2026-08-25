@@ -360,7 +360,7 @@ export function ZoteroGeoViewer(props: ZoteroGeoViewerProps) {
             height={mapHeight}
             center={mapCenter}
             baseLayers={['EsriSatellite', 'GoogleTerrain', 'Imperium']}
-            vectorLayers={mapCenter && geojson && geojson.features.length > 0 ? [{
+            overlayLayers={mapCenter && geojson && geojson.features.length > 0 ? [{
               name: t('zoteroGeoViewer.layerName'),
               source: { type: 'geojson', data: geojson },
               style: {

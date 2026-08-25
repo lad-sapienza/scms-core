@@ -3,7 +3,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { createPortal } from 'react-dom';
 import { Layers, Search, X } from 'lucide-react';
 import type { IControl } from 'maplibre-gl';
-import type { BaseLayerConfig, VectorLayerConfig, ControlPosition, SearchInFields, SearchQuery } from './types';
+import type { BaseLayerConfig, OverlayLayerConfig, ControlPosition, SearchInFields, SearchQuery } from './types';
 import { SearchUI } from './Search';
 import { useTranslation } from '../i18n';
 
@@ -11,22 +11,22 @@ export interface LayerControlProps {
   baseLayers?: BaseLayerConfig[];
   activeBaseLayer?: number;
   onBaseLayerChange?: (index: number) => void;
-  vectorLayers?: Array<VectorLayerConfig & { id: string }>;
-  vectorLayerVisibility?: Record<string, boolean>;
-  onVectorLayerToggle?: (layerId: string) => void;
+  overlayLayers?: Array<OverlayLayerConfig & { id: string }>;
+  overlayLayerVisibility?: Record<string, boolean>;
+  onOverlayLayerToggle?: (layerId: string) => void;
   onLayerSearch?: (layerId: string, query: SearchQuery) => void;
   layerSearchQueries?: Record<string, SearchQuery>;
   position?: ControlPosition;
 }
 
 // Internal React component for the control UI
-function LayerControlUI({ 
-  baseLayers = [], 
-  activeBaseLayer = 0, 
+function LayerControlUI({
+  baseLayers = [],
+  activeBaseLayer = 0,
   onBaseLayerChange,
-  vectorLayers = [],
-  vectorLayerVisibility = {},
-  onVectorLayerToggle,
+  overlayLayers = [],
+  overlayLayerVisibility = {},
+  onOverlayLayerToggle,
   onLayerSearch,
   layerSearchQueries = {},
 }: Omit<LayerControlProps, 'position'>) {
@@ -36,7 +36,7 @@ function LayerControlUI({
   const radioGroupId = React.useId();
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  const hasContent = baseLayers.length > 0 || vectorLayers.length > 0;
+  const hasContent = baseLayers.length > 0 || overlayLayers.length > 0;
   if (!hasContent) return null;
 
   const handleMouseEnter = () => {
@@ -150,20 +150,20 @@ function LayerControlUI({
           whiteSpace: 'nowrap'
         }}>
           
-          {/* Vector Layers Section */}
-          {vectorLayers.length > 0 && (
+          {/* Overlay Layers Section */}
+          {overlayLayers.length > 0 && (
             <div style={{ marginBottom: 10 }}>
-              {vectorLayers.map((layer) => (
+              {overlayLayers.map((layer) => (
                 <div key={layer.id} style={{ marginBottom: 6, display: 'flex', alignItems: 'center' }}>
                   <input
                     type="checkbox"
-                    id={`vector-layer-${layer.id}`}
-                    checked={vectorLayerVisibility[layer.id] !== false}
-                    onChange={() => onVectorLayerToggle?.(layer.id)}
+                    id={`overlay-layer-${layer.id}`}
+                    checked={overlayLayerVisibility[layer.id] !== false}
+                    onChange={() => onOverlayLayerToggle?.(layer.id)}
                     style={{ marginRight: 8, cursor: 'pointer' }}
                   />
-                  <label 
-                    htmlFor={`vector-layer-${layer.id}`}
+                  <label
+                    htmlFor={`overlay-layer-${layer.id}`}
                     style={{ cursor: 'pointer', fontSize: '12px', userSelect: 'none', flex: 1 }}
                   >
                     {layer.name}
@@ -321,7 +321,7 @@ export class LayerControlClass implements IControl {
     // Compare props to avoid unnecessary re-renders
     const hasChanged = 
       JSON.stringify(this.props.layerSearchQueries) !== JSON.stringify(newProps.layerSearchQueries) ||
-      JSON.stringify(this.props.vectorLayerVisibility) !== JSON.stringify(newProps.vectorLayerVisibility) ||
+      JSON.stringify(this.props.overlayLayerVisibility) !== JSON.stringify(newProps.overlayLayerVisibility) ||
       this.props.activeBaseLayer !== newProps.activeBaseLayer;
 
     if (hasChanged) {
@@ -354,7 +354,7 @@ export function LayerControl(props: LayerControlProps) {
       }
     }
     previousPropsRef.current = props;
-  }, [props.layerSearchQueries, props.vectorLayerVisibility, props.activeBaseLayer]);
+  }, [props.layerSearchQueries, props.overlayLayerVisibility, props.activeBaseLayer]);
 
   // Create control instance only once
   if (!controlRef.current) {

@@ -4,6 +4,7 @@
 
 import type { DataRow } from '../../utils/data-fetcher';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
+import type { WmsSourceConfig } from './types';
 
 /**
  * Tries to identify latitude and longitude fields from a data row
@@ -114,6 +115,49 @@ export function dataToGeoJson(
     type: 'FeatureCollection',
     features
   };
+}
+
+/**
+ * Expands an XYZ tile URL template's {s} subdomain placeholder into the
+ * standard a/b/c rotation (as Leaflet does natively). Returns the url
+ * unchanged, wrapped in an array, if it has no {s} placeholder.
+ */
+export function expandXyzSubdomains(url: string): string[] {
+  if (!url.includes('{s}')) return [url];
+  return ['a', 'b', 'c'].map(s => url.replace('{s}', s));
+}
+
+/**
+ * Builds a WMS GetMap tile URL template from friendly params, using
+ * MapLibre's {bbox-epsg-3857} placeholder for the per-tile bounding box.
+ */
+export function buildWmsUrl(source: WmsSourceConfig): string {
+  const {
+    url,
+    layers,
+    format = 'image/png',
+    version = '1.3.0',
+    transparent = true,
+    styles = '',
+    crs = 'EPSG:3857',
+    tileSize = 256
+  } = source;
+
+  const params = new URLSearchParams({
+    service: 'WMS',
+    request: 'GetMap',
+    version,
+    layers,
+    styles,
+    format,
+    transparent: String(transparent),
+    width: String(tileSize),
+    height: String(tileSize),
+    crs
+  });
+
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}${params.toString()}&bbox={bbox-epsg-3857}`;
 }
 
 /**

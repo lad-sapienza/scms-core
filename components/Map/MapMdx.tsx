@@ -18,7 +18,7 @@ export function Map(props: MapProps) {
   
   // Memoize array/object props to prevent unnecessary re-renders in MDX
   const stableBaseLayers = useMemo(() => props?.baseLayers, [JSON.stringify(props?.baseLayers || [])]);
-  const stableVectorLayers = useMemo(() => props?.vectorLayers, [JSON.stringify(props?.vectorLayers || [])]);
+  const stableOverlayLayers = useMemo(() => props?.overlayLayers, [JSON.stringify(props?.overlayLayers || [])]);
   const stableGeojson = useMemo(() => props?.geojson, [JSON.stringify(props?.geojson || null)]);
   const stableCsv = useMemo(() => props?.csv, [JSON.stringify(props?.csv || null)]);
   const stableJson = useMemo(() => props?.json, [JSON.stringify(props?.json || null)]);
@@ -28,7 +28,7 @@ export function Map(props: MapProps) {
       {...props} 
       center={stableCenter}
       baseLayers={stableBaseLayers}
-      vectorLayers={stableVectorLayers}
+      overlayLayers={stableOverlayLayers}
       geojson={stableGeojson}
       csv={stableCsv}
       json={stableJson}

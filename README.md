@@ -64,7 +64,7 @@ import BSNavbar from '@lad-sapienza/scms-core/components/BSNavbar';
 import { directusLoader } from '@lad-sapienza/scms-core/integrations/directusLoader';
 ```
 
-See each component folder's own `README.md` (`components/DataTb`, `components/Gallery`, `components/RedirectPage`, `components/ZoteroGeoViewer`, `components/`) for detailed API docs and examples.
+See each component folder's own `README.md` (`components/DataTb`, `components/Gallery`, `components/Map`, `components/RedirectPage`, `components/ZoteroGeoViewer`, `components/`) for detailed API docs and examples.
 
 ## Creating a new site
 

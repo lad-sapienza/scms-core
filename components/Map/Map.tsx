@@ -10,14 +10,15 @@ import MapLibreMap, {
   type MapRef
 } from '@vis.gl/react-maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type { MapProps, VectorLayerConfig } from './types';
+import type { MapProps, OverlayLayerConfig } from './types';
 import { RasterLayerLibre } from './RasterLayerLibre';
 import { LayerControlIControl } from './LayerControl';
 import { directusShorthandToConfig } from '../../utils/directus-config';
 import type { BaseLayerConfig } from './types';
 import { defaultBasemaps, getBasemap } from './defaultBasemaps';
 import { fetchData } from '../../utils/data-fetcher';
-import { dataToGeoJson, parseStringTemplate, filterObjectToPredicate, searchQueryToMapLibreFilter, searchQueryToPredicate } from './utils';
+import type { SourceConfig } from '../../utils/data-fetcher';
+import { dataToGeoJson, parseStringTemplate, filterObjectToPredicate, searchQueryToMapLibreFilter, searchQueryToPredicate, expandXyzSubdomains, buildWmsUrl } from './utils';
 import { useTranslation } from '../i18n';
 import type { FeatureCollection } from 'geojson';
 import type { CircleLayerSpecification } from 'maplibre-gl';
@@ -26,13 +27,20 @@ import type { SearchQuery } from './types';
 // Default base layer (OSM)
 const DEFAULT_BASE_LAYERS: BaseLayerConfig[] = [defaultBasemaps.OSM];
 
+// Vector-tile, xyz and wms sources are rendered natively/via RasterLayerLibre
+// and never go through fetchData — this narrows the union so TS knows
+// `layer.source` is a plain SourceConfig wherever this guard is used.
+function isFetchableLayer(layer: OverlayLayerConfig): layer is OverlayLayerConfig & { source: SourceConfig } {
+  return layer.source.type !== 'vector' && layer.source.type !== 'xyz' && layer.source.type !== 'wms';
+}
+
 export function Map({
   height = '600px',
   center = '0,0,2',
   mapStyle,
   styleOverrides,
   baseLayers = DEFAULT_BASE_LAYERS,
-  vectorLayers = [],
+  overlayLayers = [],
   geolocateControl,
   fullscreenControl,
   navigationControl = 'top-left',
@@ -48,15 +56,15 @@ export function Map({
   const [activeBaseLayer, setActiveBaseLayer] = useState<number>(0);
   const [layersData, setLayersData] = useState<Record<string, FeatureCollection>>({});
   const [hoveredFeature, setHoveredFeature] = useState<any>(null);
-  const [vectorLayerVisibility, setVectorLayerVisibility] = useState<Record<string, boolean>>({});
+  const [overlayLayerVisibility, setOverlayLayerVisibility] = useState<Record<string, boolean>>({});
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapRef = useRef<MapRef>(null);
-  const loadedLayers = useRef<Set<string>>(new Set());
+  const rawSourceCache = useRef<globalThis.Map<string, FeatureCollection>>(new globalThis.Map());
   const layerControlRef = useRef<LayerControlIControl | null>(null);
   const [parsedStyleLayers, setParsedStyleLayers] = useState<{
     baseLayers: BaseLayerConfig[];
-    vectorLayers: VectorLayerConfig[];
-  }>({ baseLayers: [], vectorLayers: [] });
+    overlayLayers: OverlayLayerConfig[];
+  }>({ baseLayers: [], overlayLayers: [] });
   const [mergedMapStyle, setMergedMapStyle] = useState<any>(null);
   const [layerExpansions, setLayerExpansions] = useState<Record<string, {
     popupTemplate?: string;
@@ -67,7 +75,7 @@ export function Map({
   // Parse mapStyle JSON to extract layers and apply overrides
   useEffect(() => {
     if (!mapStyle) {
-      setParsedStyleLayers({ baseLayers: [], vectorLayers: [] });
+      setParsedStyleLayers({ baseLayers: [], overlayLayers: [] });
       setMergedMapStyle(null);
       setLayerExpansions({});
       return;
@@ -86,7 +94,7 @@ export function Map({
         }
 
         const baseLayers: BaseLayerConfig[] = [];
-        const vectorLayers: VectorLayerConfig[] = [];
+        const overlayLayers: OverlayLayerConfig[] = [];
         const expansions: Record<string, any> = {};
 
         // Apply styleOverrides to layers
@@ -148,7 +156,7 @@ export function Map({
               const source = styleObj.sources[layer.source];
               if (source && source.type === 'vector') {
                 const expansion = expansions[layer.id] || {};
-                vectorLayers.push({
+                overlayLayers.push({
                   name: layer.metadata?.label || layer.id,
                   source: {
                     type: 'vector',
@@ -164,11 +172,11 @@ export function Map({
           });
         }
 
-        setParsedStyleLayers({ baseLayers, vectorLayers });
+        setParsedStyleLayers({ baseLayers, overlayLayers });
         setMergedMapStyle(styleObj);
       } catch (error) {
         console.error('Failed to parse mapStyle:', error);
-        setParsedStyleLayers({ baseLayers: [], vectorLayers: [] });
+        setParsedStyleLayers({ baseLayers: [], overlayLayers: [] });
         setMergedMapStyle(null);
         setLayerExpansions({});
       }
@@ -234,13 +242,13 @@ export function Map({
     return null;
   }, [geojson, csv, json, directus]);
 
-  // Combine explicit vectorLayers with implicit source
-  const allVectorLayers = useMemo(() => {
-    let layers = [...vectorLayers];
-    
+  // Combine explicit overlayLayers with implicit source
+  const allOverlayLayers = useMemo(() => {
+    let layers = [...overlayLayers];
+
     // If using mapStyle, add parsed vector layers from style JSON
-    if (mapStyle && parsedStyleLayers.vectorLayers.length > 0) {
-      layers = [...parsedStyleLayers.vectorLayers, ...layers];
+    if (mapStyle && parsedStyleLayers.overlayLayers.length > 0) {
+      layers = [...parsedStyleLayers.overlayLayers, ...layers];
     }
     
     if (implicitSource) {
@@ -288,28 +296,28 @@ export function Map({
       layers.push(layerConfig);
     }
     return layers;
-  }, [vectorLayers, implicitSource, geojson, csv, mapStyle, parsedStyleLayers.vectorLayers]);
+  }, [overlayLayers, implicitSource, geojson, csv, mapStyle, parsedStyleLayers.overlayLayers]);
 
   // Initialize and update visibility when layers change
   useEffect(() => {
-    setVectorLayerVisibility(prev => {
+    setOverlayLayerVisibility(prev => {
       const newVisibility: Record<string, boolean> = { ...prev };
       let hasChanges = false;
-      
-      allVectorLayers.forEach(layer => {
+
+      allOverlayLayers.forEach(layer => {
         const layerId = `layer-${layer.name.replace(/\s+/g, '-')}`;
-        
+
         if (newVisibility[layerId] === undefined) {
           newVisibility[layerId] = layer.visible !== false;
           hasChanges = true;
         }
       });
-      
+
       return hasChanges ? newVisibility : prev;
     });
-  }, [allVectorLayers]);
+  }, [allOverlayLayers]);
 
-  // Handle vector layer visibility toggle
+  // Handle overlay layer visibility toggle
   //
   // Wrapped in useCallback (both here and below) so its identity stays
   // stable across renders — it's one of two functions passed into the
@@ -324,14 +332,14 @@ export function Map({
   // created (correct) control was the one actually getting removed a tick
   // later, leaving the stale first control (still showing the original
   // basemap selected) as the only one left on the map.
-  const handleVectorLayerToggle = useCallback((layerId: string) => {
-    setVectorLayerVisibility(prev => ({
+  const handleOverlayLayerToggle = useCallback((layerId: string) => {
+    setOverlayLayerVisibility(prev => ({
       ...prev,
       [layerId]: !prev[layerId]
     }));
   }, []);
 
-  // Handle search for vector layers — see handleVectorLayerToggle above.
+  // Handle search for overlay layers — see handleOverlayLayerToggle above.
   const handleLayerSearch = useCallback((layerId: string, query: SearchQuery) => {
     setLayerSearchQueries(prev => ({
       ...prev,
@@ -339,71 +347,68 @@ export function Map({
     }));
   }, []);
 
-  // Load data for all vector layers
+  // Load data for all fetchable overlay layers (vector-tile, xyz and wms
+  // sources are rendered natively/via RasterLayerLibre and never reach
+  // fetchData). Raw fetched+converted GeoJSON is cached per unique source
+  // (rawSourceCache, keyed by JSON.stringify(source)) so N layer entries
+  // sharing the same source — differing only in filter/style — fetch once;
+  // each layer's own filter is applied on top of the cached raw data.
+  // Loading no longer depends on `visible`: visibility only controls
+  // display (see the render below), not whether data is ever fetched —
+  // otherwise a layer started as visible:false could never be loaded even
+  // after the user later checks it on, since this effect only re-runs when
+  // allOverlayLayers itself changes, not on a visibility toggle.
   useEffect(() => {
     const loadAllLayers = async () => {
-      const newLayersData: Record<string, FeatureCollection> = {};
-      const layersToLoad: typeof allVectorLayers = [];
-      
-      // Check which layers need to be loaded
-      for (const layer of allVectorLayers) {
-        // Vector-tile sources (parsed from a mapStyle JSON) are rendered
-        // natively by MapLibre from the style's own tiles/sources — they
-        // aren't rows to fetch, so skip them here to avoid a spurious
-        // "unsupported source type" error on every load.
-        if (layer.source.type === 'vector') continue;
+      const fetchableLayers = allOverlayLayers.filter(isFetchableLayer);
+      if (fetchableLayers.length === 0) return;
 
+      const seen = new Set<string>();
+      for (const layer of fetchableLayers) {
         const layerKey = JSON.stringify(layer.source);
-        if (!loadedLayers.current.has(layerKey) && layer.visible !== false) {
-          layersToLoad.push(layer);
-        }
-      }
-      
-      // Only proceed if there are new layers to load
-      if (layersToLoad.length === 0) return;
-      
-      for (const layer of layersToLoad) {
+        if (rawSourceCache.current.has(layerKey) || seen.has(layerKey)) continue;
+        seen.add(layerKey);
+
         try {
           const data = await fetchData(layer.source);
-          
+
           // Extract custom column names from CSV source if provided
           const customLng = layer.source.type === 'csv' ? layer.source.lng : undefined;
           const customLat = layer.source.type === 'csv' ? layer.source.lat : undefined;
-          
+
           // Extract geoField from Directus source if provided
           const geoField = layer.source.type === 'directus' ? layer.source.geoField : undefined;
-          
-          let geoJson = dataToGeoJson(data, customLng, customLat, geoField);
-          
-          // Apply client-side filter if provided
-          if (layer.filter && typeof layer.filter === 'function') {
-            geoJson = {
-              ...geoJson,
-              features: geoJson.features.filter(layer.filter)
-            };
-          }
-          
-          newLayersData[layer.name] = geoJson;
-          
-          // Mark this layer as loaded
-          const layerKey = JSON.stringify(layer.source);
-          loadedLayers.current.add(layerKey);
+
+          const geoJson = dataToGeoJson(data, customLng, customLat, geoField);
+          rawSourceCache.current.set(layerKey, geoJson);
         } catch (err) {
           console.error(`Failed to load layer "${layer.name}":`, err);
           // Continue loading other layers even if one fails
         }
       }
-      
-      // Only update state if we actually loaded new data
+
+      // Project cached raw data into each layer's own (filtered) view —
+      // cheap client-side work, no network, safe to redo whenever
+      // allOverlayLayers changes (e.g. a filter edit).
+      const newLayersData: Record<string, FeatureCollection> = {};
+      for (const layer of fetchableLayers) {
+        const raw = rawSourceCache.current.get(JSON.stringify(layer.source));
+        if (!raw) continue; // fetch failed for this source
+
+        newLayersData[layer.name] = layer.filter && typeof layer.filter === 'function'
+          ? { ...raw, features: raw.features.filter(layer.filter) }
+          : raw;
+      }
+
       if (Object.keys(newLayersData).length > 0) {
         setLayersData(prev => ({ ...prev, ...newLayersData }));
       }
     };
-    
-    if (allVectorLayers.length > 0 && typeof window !== 'undefined') {
+
+    if (allOverlayLayers.length > 0 && typeof window !== 'undefined') {
       loadAllLayers();
     }
-  }, [allVectorLayers]);
+  }, [allOverlayLayers]);
 
   // Handle fitToContent separately when map is loaded and data is ready
   useEffect(() => {
@@ -411,7 +416,7 @@ export function Map({
     if (!map || !mapLoaded || Object.keys(layersData).length === 0) return;
 
     // Find first layer with fitToContent
-    const layerToFit = allVectorLayers.find(layer => 
+    const layerToFit = allOverlayLayers.find(layer =>
       layer.fitToContent && layersData[layer.name] && layersData[layer.name].features.length > 0
     );
 
@@ -449,30 +454,30 @@ export function Map({
         map.fitBounds(bounds, { padding: 50, duration: 1000 });
       }
     }, 100);
-  }, [mapLoaded, layersData, allVectorLayers]);
+  }, [mapLoaded, layersData, allOverlayLayers]);
 
   // Add LayerControl as a proper IControl
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded || !layerControl) return;
-    
-    // Show layer control if we have base layers or vector layers
-    const hasLayers = resolvedBaseLayers.length > 0 || allVectorLayers.length > 0;
+
+    // Show layer control if we have base layers or overlay layers
+    const hasLayers = resolvedBaseLayers.length > 0 || allOverlayLayers.length > 0;
     if (!hasLayers) return;
 
     const position = typeof layerControl === 'string' ? layerControl : 'top-right';
-    
+
     // Create and add control
     const control = new LayerControlIControl({
       baseLayers: resolvedBaseLayers,
       activeBaseLayer,
       onBaseLayerChange: setActiveBaseLayer,
-      vectorLayers: allVectorLayers.map(layer => ({
+      overlayLayers: allOverlayLayers.map(layer => ({
         ...layer,
         id: `layer-${layer.name.replace(/\s+/g, '-')}`
       })),
-      vectorLayerVisibility,
-      onVectorLayerToggle: handleVectorLayerToggle,
+      overlayLayerVisibility,
+      onOverlayLayerToggle: handleOverlayLayerToggle,
       onLayerSearch: handleLayerSearch,
       layerSearchQueries
     });
@@ -490,7 +495,7 @@ export function Map({
         map.removeControl(control);
       }, 0);
     };
-  }, [mapLoaded, layerControl, resolvedBaseLayers, allVectorLayers.length, handleLayerSearch]);
+  }, [mapLoaded, layerControl, resolvedBaseLayers, allOverlayLayers.length, handleLayerSearch]);
 
   // Update layer control props when they change
   useEffect(() => {
@@ -499,17 +504,17 @@ export function Map({
         baseLayers: resolvedBaseLayers,
         activeBaseLayer,
         onBaseLayerChange: setActiveBaseLayer,
-        vectorLayers: allVectorLayers.map(layer => ({
+        overlayLayers: allOverlayLayers.map(layer => ({
           ...layer,
           id: `layer-${layer.name.replace(/\s+/g, '-')}`
         })),
-        vectorLayerVisibility,
-        onVectorLayerToggle: handleVectorLayerToggle,
+        overlayLayerVisibility,
+        onOverlayLayerToggle: handleOverlayLayerToggle,
         onLayerSearch: handleLayerSearch,
         layerSearchQueries
       });
     }
-  }, [resolvedBaseLayers, activeBaseLayer, allVectorLayers, vectorLayerVisibility, handleLayerSearch, layerSearchQueries]);
+  }, [resolvedBaseLayers, activeBaseLayer, allOverlayLayers, overlayLayerVisibility, handleLayerSearch, layerSearchQueries]);
 
   // Control visibility of layers from style JSON
   useEffect(() => {
@@ -517,10 +522,10 @@ export function Map({
     if (!map || !mapLoaded || !mapStyle) return;
 
     // Update visibility for vector layers from parsed style
-    parsedStyleLayers.vectorLayers.forEach(layer => {
+    parsedStyleLayers.overlayLayers.forEach(layer => {
       const layerId = `layer-${layer.name.replace(/\s+/g, '-')}`;
-      const isVisible = vectorLayerVisibility[layerId] !== false;
-      
+      const isVisible = overlayLayerVisibility[layerId] !== false;
+
       // The original layer ID from the style JSON
       const styleLayerId = layer.style?.id;
       if (styleLayerId && map.getLayer(styleLayerId)) {
@@ -531,7 +536,7 @@ export function Map({
         );
       }
     });
-  }, [vectorLayerVisibility, mapLoaded, mapStyle, parsedStyleLayers.vectorLayers]);
+  }, [overlayLayerVisibility, mapLoaded, mapStyle, parsedStyleLayers.overlayLayers]);
 
   // Handle fitToContent for layers with expansions
   useEffect(() => {
@@ -604,8 +609,8 @@ export function Map({
           if (e.features && e.features.length > 0) {
             const clickedLayerId = e.features[0].layer?.id;
             
-            // Check for popup in allVectorLayers (includes parsed style layers)
-            const layerConfig = allVectorLayers.find(l => {
+            // Check for popup in allOverlayLayers (includes parsed style layers)
+            const layerConfig = allOverlayLayers.find(l => {
               const layerId = `layer-${l.name.replace(/\s+/g, '-')}`;
               return layerId === clickedLayerId;
             });
@@ -624,30 +629,50 @@ export function Map({
           }
         }}
         interactiveLayerIds={[
-          ...allVectorLayers.map(l => `layer-${l.name.replace(/\s+/g, '-')}`),
+          ...allOverlayLayers.map(l => `layer-${l.name.replace(/\s+/g, '-')}`),
           ...Object.keys(layerExpansions) // Add layer IDs that have expansions
         ]}
       >
         {/* Base Layers (only if no full mapStyle is provided) - render ALL but control visibility */}
         {!mapStyle && resolvedBaseLayers.map((layer, index) => (
-          <RasterLayerLibre 
+          <RasterLayerLibre
             key={`basemap-${index}`}
             id={`base-layer-${index}`}
-            url={[layer.url]}
+            url={expandXyzSubdomains(layer.url)}
             attribution={layer.attribution}
+            tileSize={layer.tileSize}
             visible={index === activeBaseLayer}
           />
         ))}
 
-        {/* Vector Layers from prop - render AFTER base layer so they appear on top */}
-        {allVectorLayers.map((layer) => {
-          const geoJson = layersData[layer.name];
+        {/* Overlay Layers from prop - render AFTER base layer so they appear on top */}
+        {allOverlayLayers.map((layer) => {
           const layerId = `layer-${layer.name.replace(/\s+/g, '-')}`;
+          const isVisible = overlayLayerVisibility[layerId] !== false;
+
+          // Raster overlays (XYZ/WMS) render natively via MapLibre tiles —
+          // they never go through fetchData/dataToGeoJson/layersData.
+          if (layer.source.type === 'xyz' || layer.source.type === 'wms') {
+            const urls = layer.source.type === 'xyz'
+              ? expandXyzSubdomains(layer.source.url)
+              : [buildWmsUrl(layer.source)];
+            return (
+              <RasterLayerLibre
+                key={layerId}
+                id={layerId}
+                url={urls}
+                tileSize={layer.source.tileSize}
+                attribution={layer.source.attribution}
+                visible={isVisible}
+              />
+            );
+          }
+
+          const geoJson = layersData[layer.name];
           const sourceId = `source-${layer.name}`;
-          const isVisible = vectorLayerVisibility[layerId] !== false;
-          
+
           if (!geoJson) return null;
-          
+
           // Apply search filter if present
           const searchQuery = layerSearchQueries[layerId];
           let filteredGeoJson = geoJson;
