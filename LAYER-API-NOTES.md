@@ -50,3 +50,28 @@ condizione di caricamento (bug correlato: un layer partito `visible:false` non v
 caricato nemmeno dopo che l'utente lo spuntava, perché l'effetto dipendeva solo da
 `[allOverlayLayers]`, non dal toggle di visibilità) — `visible` ora controlla solo la
 visualizzazione iniziale, non il caricamento.
+
+## 5. Render loop con gli shorthand `geojson` / `csv` / `json` / `directus` — risolto (alpha.9)
+
+Emerso migrando `elamortuary`, ma riproducibile anche sul sito docs
+(`/en/docs/components/map/`, primo esempio): usando **solo** uno shorthand e omettendo
+`overlayLayers`, il componente entrava in loop di render — `Maximum update depth exceeded` a
+ripetizione e `fitToContent` che riparte all'infinito (zoom lentissimo).
+
+Causa: il default `overlayLayers = []` nella destrutturazione di `Map.tsx` allocava un array
+nuovo a ogni render. Quell'array è dependency della `useMemo` di `allOverlayLayers`, quindi la
+memo si ricalcolava ogni render → l'effetto di load keyed su `[allOverlayLayers]` rigirava →
+`setLayersData` → re-render → loop.
+
+Fix (due punti, minimi):
+
+- `components/Map/Map.tsx`: hoist di `EMPTY_OVERLAY_LAYERS` a costante di modulo (stesso pattern
+  di `DEFAULT_BASE_LAYERS`), usata come valore di default del parametro — riferimento stabile tra
+  i render.
+- `components/Map/MapMdx.tsx`: aggiunta la stabilizzazione di `directus` (`stableDirectus` via
+  `JSON.stringify`), che alimentava la stessa catena `implicitSource` → `allOverlayLayers` degli
+  altri shorthand ma non era memoizzata — un `directus={{ … }}` inline da MDX innescava lo stesso
+  loop.
+
+`overlayLayers={[…]}` esplicito non era mai stato colpito (è il pattern di FortNet): `MapMdx` lo
+stabilizza già via `JSON.stringify`.

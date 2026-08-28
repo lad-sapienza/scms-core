@@ -22,16 +22,22 @@ export function Map(props: MapProps) {
   const stableGeojson = useMemo(() => props?.geojson, [JSON.stringify(props?.geojson || null)]);
   const stableCsv = useMemo(() => props?.csv, [JSON.stringify(props?.csv || null)]);
   const stableJson = useMemo(() => props?.json, [JSON.stringify(props?.json || null)]);
+  // `directus` feeds the same `implicitSource` → `allOverlayLayers` memo chain
+  // as `geojson`/`csv`/`json`; without stabilising it here an inline
+  // `directus={{ table: '…' }}` object from MDX gets a new identity on every
+  // render and drives the same render loop the others are memoised against.
+  const stableDirectus = useMemo(() => props?.directus, [JSON.stringify(props?.directus || null)]);
 
   return (
-    <MapCore 
-      {...props} 
+    <MapCore
+      {...props}
       center={stableCenter}
       baseLayers={stableBaseLayers}
       overlayLayers={stableOverlayLayers}
       geojson={stableGeojson}
       csv={stableCsv}
       json={stableJson}
+      directus={stableDirectus}
     />
   );
 }

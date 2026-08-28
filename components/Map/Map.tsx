@@ -27,6 +27,18 @@ import type { SearchQuery } from './types';
 // Default base layer (OSM)
 const DEFAULT_BASE_LAYERS: BaseLayerConfig[] = [defaultBasemaps.OSM];
 
+// Stable identity for the "no explicit overlayLayers prop" case. A literal
+// `overlayLayers = []` default in the destructure below allocates a fresh
+// array on every render whenever the caller uses only a shorthand prop
+// (`geojson` / `csv` / `json` / `directus`) and omits `overlayLayers`. That
+// fresh array is a dependency of the `allOverlayLayers` useMemo, so the memo
+// recomputes every render → the data-loading effect keyed on it re-runs →
+// `setLayersData` → re-render → loop ("Maximum update depth exceeded", plus a
+// `fitToContent` fitBounds animation that restarts forever). Hoisting the
+// empty array to a module constant (same pattern as DEFAULT_BASE_LAYERS)
+// keeps its reference stable across renders.
+const EMPTY_OVERLAY_LAYERS: OverlayLayerConfig[] = [];
+
 // Vector-tile, xyz and wms sources are rendered natively/via RasterLayerLibre
 // and never go through fetchData — this narrows the union so TS knows
 // `layer.source` is a plain SourceConfig wherever this guard is used.
@@ -40,7 +52,7 @@ export function Map({
   mapStyle,
   styleOverrides,
   baseLayers = DEFAULT_BASE_LAYERS,
-  overlayLayers = [],
+  overlayLayers = EMPTY_OVERLAY_LAYERS,
   geolocateControl,
   fullscreenControl,
   navigationControl = 'top-left',
