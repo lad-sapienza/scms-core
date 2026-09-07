@@ -87,6 +87,8 @@ npx scms-add-content      # add a new content file to an existing collection
 
 A consuming site typically wires these up as `npm run add-collection` / `npm run add-content` in its own `package.json` (this is what `scms-create` sets up automatically).
 
+Both commands are multilingual-aware. `scms-add-collection` optionally takes a list of locale codes and scaffolds one sample per `src/content/<name>/<locale>/` folder; `scms-add-content` detects those language folders (every sub-folder is a locale code, nothing loose at the collection root) and asks which language the new file belongs in — a single locale, a comma-separated subset, or `all`.
+
 ## Development
 
 ```bash

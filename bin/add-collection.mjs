@@ -468,6 +468,27 @@ async function main() {
   const typeRaw = (await ask('Choose type [1/2/3] (default: 3): ')).trim() || '3';
   const colType = typeRaw === '1' ? 'blog' : typeRaw === '2' ? 'docs' : 'generic';
   ok(`Type: ${colType}`);
+
+  // ─── Prompt: language folders (multilingual collection) ──────────────────
+  // A site can organise a collection's content per language, as
+  // src/content/<col>/<locale>/… — s:CMS's i18n layer is structural, it keys
+  // off those folders existing rather than a config flag. Ask up front so the
+  // sample file(s) land in the right place. (The page templates written below
+  // are single-language starting points regardless — see the closing notes.)
+  console.log('');
+  console.log(`${B}Language folders${X} — for a multilingual collection, list the locale`);
+  console.log(`  codes to scaffold (e.g. ${B}en, it${X}). Leave blank for a single-language collection.`);
+  let locales = [];
+  while (true) {
+    const raw = (await ask('  Locale codes [blank = none]: ')).trim();
+    if (!raw) break;
+    const parsed = raw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    const bad = parsed.filter(p => !/^[a-z]{2}(?:[-_][a-z0-9]{2,4})?$/i.test(p));
+    if (bad.length) { warn(`Not a locale code: ${bad.join(', ')} (expected e.g. en, it, pt-BR)`); continue; }
+    locales = [...new Set(parsed)];
+    break;
+  }
+  if (locales.length) ok(`Language folders: ${locales.join(', ')}`);
   rl.close();
 
   // ─── 1. Update src/content.config.ts ──────────────────────────────────────
@@ -505,10 +526,9 @@ async function main() {
   writeFileSync(CONFIG_FILE, before + after, 'utf8');
   ok('src/content.config.ts updated');
 
-  // ─── 2. Sample content file ───────────────────────────────────────────────
+  // ─── 2. Sample content file(s) ───────────────────────────────────────────
   const today      = new Date().toISOString().slice(0, 10);
   const contentDir = join(ROOT_DIR, 'src', 'content', colName);
-  mkdirSync(contentDir, { recursive: true });
 
   const SAMPLE_NAME = { blog: 'sample-post.md', docs: 'sample-doc.md', generic: 'sample.md' };
   const SAMPLE_BODY = {
@@ -529,9 +549,16 @@ async function main() {
       `# Sample Entry\n\nThis is a sample entry. Replace this file with real content.\n`,
   };
 
-  const samplePath = join(contentDir, SAMPLE_NAME[colType]);
-  writeFileSync(samplePath, SAMPLE_BODY[colType], 'utf8');
-  ok(relative(ROOT_DIR, samplePath));
+  // One sample per language folder for a multilingual collection, otherwise a
+  // single sample in the collection root. The copies are identical starting
+  // points — translations get written by hand afterwards.
+  const sampleDirs = locales.length ? locales.map(loc => join(contentDir, loc)) : [contentDir];
+  for (const dir of sampleDirs) {
+    mkdirSync(dir, { recursive: true });
+    const samplePath = join(dir, SAMPLE_NAME[colType]);
+    writeFileSync(samplePath, SAMPLE_BODY[colType], 'utf8');
+    ok(relative(ROOT_DIR, samplePath));
+  }
 
   // ─── 3. Page templates ────────────────────────────────────────────────────
   const pagesDir = join(ROOT_DIR, 'src', 'pages', colName);
@@ -553,7 +580,11 @@ async function main() {
   console.log(`  ${B}Next steps:${X}`);
   console.log(`    1. Open ${B}src/content.config.ts${X} and review the schema for '${colName}'`);
   console.log(`    2. Edit the page files in ${B}src/pages/${colName}/${X} to customise the UI`);
-  console.log(`    3. Replace the sample file in ${B}src/content/${colName}/${X} with real content`);
+  if (locales.length) {
+    console.log(`       ${Y}These render a single language — adapt them to your locale`);
+    console.log(`       routing (e.g. move them under src/pages/[locale]/${colName}/).${X}`);
+  }
+  console.log(`    3. Replace the sample file${locales.length ? 's' : ''} in ${B}src/content/${colName}/${X} with real content`);
   console.log(`    4. Run ${B}npm run dev${X} and visit ${B}/${colName}${X}`);
   console.log('');
 }

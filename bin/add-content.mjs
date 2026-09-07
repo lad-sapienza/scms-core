@@ -75,6 +75,36 @@ function hasMdx(dir) {
   } catch { return false; }
 }
 
+/** True if any .md/.mdx file sits directly in dir (not in a sub-folder) */
+function hasRootContentFiles(dir) {
+  try {
+    return readdirSync(dir, { withFileTypes: true })
+      .some(d => d.isFile() && /\.mdx?$/.test(d.name));
+  } catch { return false; }
+}
+
+/**
+ * Locale-code sub-directories directly inside a collection dir — e.g.
+ * `en`, `it`, `pt-BR`. Their presence is how a site opts a collection in to
+ * per-language content: there is no config flag (s:CMS's i18n layer is
+ * structural — it keys off these folders existing). The pattern is a
+ * 2-letter base with an optional region/script suffix (`pt-BR`, `zh-Hans`),
+ * and — to keep ordinary topic folders (`api`, `guides`) from being taken
+ * for languages — this returns nothing unless *every* sub-folder matches.
+ * Sorted, for a stable prompt order.
+ */
+function detectLocaleDirs(dir) {
+  let subdirs;
+  try {
+    subdirs = readdirSync(dir, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .map(d => d.name);
+  } catch { return []; }
+  if (subdirs.length === 0) return [];
+  const locales = subdirs.filter(n => /^[a-z]{2}(?:[-_][a-z0-9]{2,4})?$/i.test(n));
+  return locales.length === subdirs.length ? locales.sort() : [];
+}
+
 /** Extract z.object field lines for a named collection from config.ts */
 function parseSchemaFields(src, colName) {
   const pat = new RegExp(
@@ -163,9 +193,37 @@ async function main() {
   }
   ok(`Collection: ${collection}`);
 
+  const colDir = join(CONTENT_BASE, collection);
+
+  // ─── Prompt: language folder (multilingual collections only) ─────────────
+  // A collection counts as multilingual purely by its layout: content split
+  // into locale-named sub-folders (src/content/<col>/<locale>/…) with nothing
+  // loose at the collection root. When that's the case, ask which locale
+  // folder(s) the new file belongs in — one, a comma-separated subset, or
+  // `all`. Collections that aren't organised this way skip the step entirely
+  // and behave exactly as before.
+  const localeDirs = hasRootContentFiles(colDir) ? [] : detectLocaleDirs(colDir);
+  let targetLocales = ['']; // '' → straight into the collection root (single-language)
+  if (localeDirs.length > 0) {
+    console.log('');
+    console.log(`  This collection is organised by language folder: ${B}${localeDirs.join(', ')}${X}`);
+    console.log('  Enter one language, a comma-separated list, or "all".');
+    console.log('');
+    while (true) {
+      const raw = (await ask(`${B}Language${X} [${[...localeDirs, 'all'].join(' / ')}]: `)).trim().toLowerCase();
+      if (!raw) { warn('Please choose a language (or "all").'); continue; }
+      if (raw === 'all') { targetLocales = [...localeDirs]; break; }
+      const picked  = raw.split(',').map(s => s.trim()).filter(Boolean);
+      const unknown = picked.filter(p => !localeDirs.includes(p));
+      if (unknown.length) { warn(`Not an available language: ${unknown.join(', ')}`); continue; }
+      targetLocales = [...new Set(picked)];
+      break;
+    }
+    ok(`Language: ${targetLocales.join(', ')}`);
+  }
+
   // ─── Prompt: file format ─────────────────────────────────────────────────
-  const colDir     = join(CONTENT_BASE, collection);
-  const defaultExt = hasMdx(colDir) ? 'mdx' : 'md';
+  const defaultExt = targetLocales.some(loc => hasMdx(join(colDir, loc))) ? 'mdx' : 'md';
   console.log('');
   const extRaw = (await ask(`${B}File format${X} [md/mdx] (default: ${defaultExt}): `)).trim() || defaultExt;
   const ext    = (extRaw === 'md' || extRaw === 'mdx') ? extRaw : defaultExt;
@@ -183,8 +241,9 @@ async function main() {
       warn('Slug must contain only lowercase letters, numbers, hyphens, underscores, and forward slashes.');
       continue;
     }
-    if (existsSync(join(colDir, raw, `index.${ext}`))) {
-      warn(`File already exists: src/content/${collection}/${raw}/index.${ext}`);
+    const clash = targetLocales.find(loc => existsSync(join(colDir, loc, raw, `index.${ext}`)));
+    if (clash !== undefined) {
+      warn(`File already exists: ${relative(ROOT_DIR, join(colDir, clash, raw, `index.${ext}`))}`);
       continue;
     }
     slug = raw;
@@ -234,11 +293,7 @@ async function main() {
 
   rl.close();
 
-  // ─── Write file ───────────────────────────────────────────────────────────
-  const targetDir  = join(colDir, slug);
-  const targetPath = join(targetDir, `index.${ext}`);
-  mkdirSync(targetDir, { recursive: true });
-
+  // ─── Write file(s) ────────────────────────────────────────────────────────
   const content = [
     '---',
     ...fmLines,
@@ -250,19 +305,39 @@ async function main() {
     '',
   ].join('\n');
 
-  writeFileSync(targetPath, content, 'utf8');
+  // One copy per chosen language folder (just one entry, '', for a
+  // single-language collection). Each copy is an identical starting point —
+  // the per-locale translations are written afterwards, by hand.
+  const created = [];
+  for (const loc of targetLocales) {
+    const targetDir  = join(colDir, loc, slug);
+    const targetPath = join(targetDir, `index.${ext}`);
+    mkdirSync(targetDir, { recursive: true });
+    writeFileSync(targetPath, content, 'utf8');
+    created.push(relative(ROOT_DIR, targetPath));
+  }
 
   console.log('');
-  ok(`Created: ${relative(ROOT_DIR, targetPath)}`);
+  for (const p of created) ok(`Created: ${p}`);
 
   // ─── Summary ──────────────────────────────────────────────────────────────
+  const multilingual = targetLocales.some(Boolean);
   console.log('');
   console.log(`${G}${B}Done!${X}`);
   console.log('');
   console.log(`  ${B}Next steps:${X}`);
-  console.log(`    1. Open ${B}src/content/${collection}/${slug}/index.${ext}${X} and write your content`);
+  if (multilingual) {
+    console.log(`    1. Open the new file${created.length > 1 ? 's' : ''} and write ${created.length > 1 ? 'each translation' : 'your content'}:`);
+    for (const p of created) console.log(`         ${B}${p}${X}`);
+  } else {
+    console.log(`    1. Open ${B}${created[0]}${X} and write your content`);
+  }
   console.log(`    2. Set ${B}draft: false${X} when the content is ready to publish`);
-  console.log(`    3. Run ${B}npm run dev${X} and visit ${B}/${collection}/${slug}${X}`);
+  if (multilingual) {
+    console.log(`    3. Run ${B}npm run dev${X} and visit the new page (e.g. ${B}/${targetLocales[0]}/${collection}/${slug}${X}, depending on your locale routing)`);
+  } else {
+    console.log(`    3. Run ${B}npm run dev${X} and visit ${B}/${collection}/${slug}${X}`);
+  }
   console.log('');
 }
 
