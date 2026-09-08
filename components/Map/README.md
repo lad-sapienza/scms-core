@@ -1,10 +1,15 @@
 # Map Component
 
-Interactive map built on [MapLibre GL JS](https://maplibre.org/) (via
+Interactive map built on [MapLibre GL JS](https://maplibre.org/) **v6** (via
 `@vis.gl/react-maplibre`). Renders a raster basemap, any number of toggleable
 overlay layers pulled from heterogeneous data sources (GeoJSON, CSV, JSON,
 Directus, a generic API, or raster XYZ/WMS tiles), and a built-in layer
 control for switching basemaps and toggling overlays.
+
+MapLibre v6 requires **WebGL2** (universally supported by current browsers) and
+no longer auto-loads its Web Worker — `Map.tsx` wires the worker up itself with
+a Vite `?worker&url` import, so consuming sites need no bundler/worker config.
+The `maplibre-gl` peer dependency is `^6`.
 
 ## Basic usage
 
@@ -199,3 +204,10 @@ exact shape.
   only two functions that build tile URL templates — both `baseLayers` and
   raster `overlayLayers` go through them, so there's one place to fix or
   extend tile-URL construction.
+- MapLibre GL JS v6 dropped the automatic worker bootstrap, so `Map.tsx`
+  imports `maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url` and calls
+  `setWorkerUrl()` at module load, before `@vis.gl/react-maplibre` constructs
+  any map. `?worker&url` (not `?url`) routes the worker through Vite's worker
+  pipeline so its `maplibre-gl-shared.mjs` sibling is bundled in. `scms.ts`
+  adds `ssr.noExternal: ['maplibre-gl']` so that import also resolves in the
+  SSR pass for consumers rendering `<Map client:load>`.

@@ -64,22 +64,31 @@ function scmsViteConfigIntegration(): AstroIntegration {
               dedupe: HOOK_LIBRARIES,
             },
             optimizeDeps: {
-              // papaparse is CommonJS-only (no `module`/`exports` field), and
-              // maplibre-gl's `dist/maplibre-gl.js` is a UMD bundle despite
-              // declaring `"type": "module"` in its own package.json (verified:
-              // it's a `(function(global, factory) {...})` UMD wrapper with zero
-              // `export` statements). When their importers (CsvSource.tsx,
-              // Map.tsx via @vis.gl/react-maplibre's dynamic `import('maplibre-gl')`)
-              // lived inside this project's own source tree, Vite's dev-time
-              // dependency scanner discovered and pre-bundled them automatically,
-              // performing the CJS/UMD→ESM interop conversion. Now that the
-              // importers live in node_modules (this package), Vite's default
-              // scanning no longer picks them up on its own, and the browser gets
-              // served the raw file as if it already were ESM — resulting in
-              // "does not provide an export named 'default'" for papaparse and
-              // an empty module namespace (silently breaking `'Map' in module`)
-              // for maplibre-gl. Both must be pre-bundled explicitly.
-              include: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'papaparse', 'maplibre-gl'],
+              // papaparse is CommonJS-only (no `module`/`exports` field). Its
+              // importer (CsvSource.tsx) lives in node_modules once this is a
+              // published package, so Vite's dev-time dependency scanner no
+              // longer discovers it on its own and pre-bundles the CJS→ESM
+              // interop — without this entry the browser is served the raw CJS
+              // file and crashes with "does not provide an export named
+              // 'default'". Must stay explicit.
+              //
+              // maplibre-gl used to need the same treatment because v5 shipped a
+              // UMD `dist/maplibre-gl.js`; v6 is real ESM (`dist/maplibre-gl.mjs`,
+              // `"exports"` map, no UMD), so Vite handles it with no interop
+              // shim and no explicit entry here. Map.tsx's `?worker&url` worker
+              // chunk is a separate, self-contained module and does not go
+              // through this pre-bundle.
+              include: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'papaparse'],
+            },
+            ssr: {
+              // MapLibre GL JS v6's worker is wired up in Map.tsx via a
+              // `maplibre-gl/dist/...?worker&url` import (see that file). Vite's
+              // worker plugin can only resolve that specifier when maplibre-gl
+              // is bundled for SSR rather than externalised to a raw Node
+              // `import` — required for consumers that render <Map> with
+              // `client:load`/`client:visible` (server pass) rather than
+              // `client:only`. MapLibre's own Astro guidance calls for this.
+              noExternal: ['maplibre-gl'],
             },
           },
         });

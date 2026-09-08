@@ -29,15 +29,23 @@ describe('scms', () => {
       expect.arrayContaining(['react', 'react-dom'])
     );
 
-    // papaparse (CommonJS) and maplibre-gl (UMD despite "type": "module" in
-    // its own package.json) both need explicit pre-bundling once their
-    // importers (CsvSource.tsx, Map.tsx) live in node_modules instead of the
-    // consumer's own source tree — confirmed empirically via real `astro dev`
-    // crashes: "does not provide an export named 'default'" for papaparse,
-    // and an empty module namespace ("Cannot read properties of undefined
-    // (reading 'Map')") for maplibre-gl (2026-08-22). Must stay explicit here.
+    // papaparse (CommonJS) needs explicit pre-bundling once its importer
+    // (CsvSource.tsx) lives in node_modules instead of the consumer's own
+    // source tree — confirmed empirically via a real `astro dev` crash:
+    // "does not provide an export named 'default'" (2026-08-22). Must stay
+    // explicit here.
     expect(capturedConfig.vite.optimizeDeps.include).toEqual(
-      expect.arrayContaining(['papaparse', 'maplibre-gl'])
+      expect.arrayContaining(['papaparse'])
+    );
+    // maplibre-gl v6 is real ESM (v5 shipped a UMD bundle), so it no longer
+    // needs a pre-bundle interop entry — see scms.ts.
+    expect(capturedConfig.vite.optimizeDeps.include).not.toContain('maplibre-gl');
+
+    // maplibre-gl must be bundled for SSR, not externalised, so Vite's worker
+    // plugin can resolve Map.tsx's `?worker&url` import in the server pass
+    // (needed for `client:load`/`client:visible` <Map> usage).
+    expect(capturedConfig.vite.ssr.noExternal).toEqual(
+      expect.arrayContaining(['maplibre-gl'])
     );
   });
 

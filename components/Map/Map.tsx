@@ -10,6 +10,19 @@ import MapLibreMap, {
   type MapRef
 } from '@vis.gl/react-maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
+// MapLibre GL JS v6 no longer resolves and loads its Web Worker automatically
+// (v5 did): a bundler-based app must hand the library a worker URL itself
+// before the first map is constructed. `?worker&url` runs the dist worker
+// through Vite's worker pipeline so its sibling `maplibre-gl-shared.mjs` is
+// bundled into a self-contained chunk — a plain `?url` import leaves the worker
+// unable to load that sibling in production builds. This runs at module-eval
+// time, before `@vis.gl/react-maplibre` dynamically imports maplibre-gl and
+// calls `new Map()`, so the URL is always registered in time. Consuming sites
+// need no worker config of their own.
+// See https://maplibre.org/maplibre-gl-js/docs/ (Installation → Bundlers) and
+// https://visgl.github.io/react-map-gl/docs/get-started.
+import { setWorkerUrl } from 'maplibre-gl';
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import type { MapProps, OverlayLayerConfig } from './types';
 import { RasterLayerLibre } from './RasterLayerLibre';
 import { LayerControlIControl } from './LayerControl';
@@ -23,6 +36,9 @@ import { useTranslation } from '../i18n';
 import type { FeatureCollection } from 'geojson';
 import type { CircleLayerSpecification } from 'maplibre-gl';
 import type { SearchQuery } from './types';
+
+// Register the v6 worker URL once, at module load — see the import comment above.
+setWorkerUrl(maplibreWorkerUrl);
 
 // Default base layer (OSM)
 const DEFAULT_BASE_LAYERS: BaseLayerConfig[] = [defaultBasemaps.OSM];

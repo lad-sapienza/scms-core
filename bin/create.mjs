@@ -115,7 +115,7 @@ async function main() {
     __ASTRO_VERSION__: bareVersion(peers.astro ?? '7.0.0'),
     __REACT_VERSION__: bareVersion(peers.react ?? '19.0.0'),
     __REACT_DOM_VERSION__: bareVersion(peers['react-dom'] ?? '19.0.0'),
-    __MAPLIBRE_VERSION__: bareVersion(peers['maplibre-gl'] ?? '5.0.0'),
+    __MAPLIBRE_VERSION__: bareVersion(peers['maplibre-gl'] ?? '6.0.0'),
     __TYPES_REACT_VERSION__: bareVersion(peers['@types/react'] ?? '19.0.0'),
     __TYPES_REACT_DOM_VERSION__: bareVersion(peers['@types/react-dom'] ?? '19.0.0'),
   };

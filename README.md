@@ -10,7 +10,7 @@ This package supplies the `core/` framework layer that used to live inside the s
 npm install @lad-sapienza/scms-core
 ```
 
-Peer dependencies (install alongside): `astro`, `react`, `react-dom`, `maplibre-gl`, `@types/react`, `@types/react-dom`.
+Peer dependencies (install alongside): `astro`, `react`, `react-dom`, `maplibre-gl` (v6+), `@types/react`, `@types/react-dom`.
 
 ## Usage
 
@@ -37,7 +37,7 @@ export default defineConfig({
 });
 ```
 
-`scms()` bundles content-asset serving, the Gallery virtual module, Expressive Code, MDX, React, and sitemap integrations into one call, and self-registers the Vite `dedupe`/`optimizeDeps` config React and `@tanstack/react-table` need to avoid duplicate-module "Invalid hook call" errors — no extra Vite config required in the consumer.
+`scms()` bundles content-asset serving, the Gallery virtual module, Expressive Code, MDX, React, and sitemap integrations into one call, and self-registers the Vite config the components need — `dedupe`/`optimizeDeps` for React and `@tanstack/react-table` (avoids duplicate-module "Invalid hook call" errors) and `ssr.noExternal` for `maplibre-gl` (so the `Map` component's MapLibre v6 worker import resolves in the SSR pass). No extra Vite config required in the consumer.
 
 Import components from the package root in any `.mdx` file:
 
