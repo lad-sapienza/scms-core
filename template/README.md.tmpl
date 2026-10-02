@@ -14,6 +14,19 @@ Built with [s:CMS](https://github.com/lad-sapienza/scms-core), on top of [Astro]
 | `npm run preview` | Preview the production build locally |
 | `npm run add-collection` | Scaffold a new content collection |
 | `npm run add-content` | Add a new content file to an existing collection |
+| `npm run images` | Convert content images to WebP (max 2000 px) and rewrite their references |
+
+## Optimizing images
+
+Drop JPG/PNG images next to your content as usual, then run `npm run images`: they are converted to WebP, scaled down to 2000 px, the originals are deleted and the `.md`/`.mdx` references are rewritten (`--dry-run` shows the savings without touching anything). References from `.astro`/`.tsx` files are only reported — update them by hand.
+
+To make the build fail when an unoptimized image slips in, add a check to `package.json`; it never modifies any file:
+
+```json
+"prebuild": "scms-optimize-images --check"
+```
+
+Limits, quality and the site languages are configured in `src/user.config.mjs` (`userConfig.images`, `userConfig.i18n`); see the [scms-core README](https://github.com/lad-sapienza/scms-core#image-optimization) for all the options, including an optional pre-commit hook. Commit the `.scms-optimize-images.json` file it may create.
 
 ## Updating the framework
 

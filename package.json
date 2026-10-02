@@ -13,7 +13,8 @@
   "bin": {
     "scms-add-collection": "./bin/add-collection.mjs",
     "scms-add-content": "./bin/add-content.mjs",
-    "scms-create": "./bin/create.mjs"
+    "scms-create": "./bin/create.mjs",
+    "scms-optimize-images": "./bin/optimize-images.mjs"
   },
   "files": [
     "index.ts",
@@ -54,6 +55,7 @@
     "papaparse": "^5.5.3",
     "photoswipe": "^5.4.4",
     "react-photoswipe-gallery": "^4.0.0",
+    "sharp": "^0.35.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {
