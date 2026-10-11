@@ -4,7 +4,10 @@ All notable changes to `@lad-sapienza/scms-core`. Prereleases were published
 under the `alpha` dist-tag. Versions up to `0.1.0-alpha.5` were not tagged in
 git; their entries are grouped by date.
 
-## Unreleased
+## 0.1.0 — 2026-10-11
+
+First stable release. The package is Astro-only (see README → Requirements) and
+its public API is now defined by the `exports` map.
 
 ### Changed (breaking)
 - `package.json` now declares an `exports` map. Only the documented entry
