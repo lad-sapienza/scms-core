@@ -4,7 +4,7 @@
 
 import type { DataRow } from '../../utils/data-fetcher';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
-import type { WmsSourceConfig } from './types';
+import type { WmsSourceConfig, MarkerConfig } from './types';
 
 /**
  * Tries to identify latitude and longitude fields from a data row
@@ -115,6 +115,24 @@ export function dataToGeoJson(
     type: 'FeatureCollection',
     features
   };
+}
+
+/**
+ * Converts the `markers` shorthand to a GeoJSON FeatureCollection of points,
+ * dropping entries whose coordinates aren't finite numbers. The label ends up
+ * in the `label` property, which the markers layer's popup template reads.
+ */
+export function markersToGeoJson(markers: MarkerConfig | MarkerConfig[]): FeatureCollection {
+  const list = Array.isArray(markers) ? markers : [markers];
+  const features: Feature[] = list
+    .filter(m => m && m.lng != null && m.lat != null
+      && Number.isFinite(Number(m.lng)) && Number.isFinite(Number(m.lat)))
+    .map(m => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [Number(m.lng), Number(m.lat)] },
+      properties: { label: m.label ?? '' }
+    }));
+  return { type: 'FeatureCollection', features };
 }
 
 /**

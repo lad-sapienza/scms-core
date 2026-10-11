@@ -31,7 +31,7 @@ import type { BaseLayerConfig } from './types';
 import { defaultBasemaps, getBasemap } from './defaultBasemaps';
 import { fetchData } from '../../utils/data-fetcher';
 import type { SourceConfig } from '../../utils/data-fetcher';
-import { dataToGeoJson, parseStringTemplate, filterObjectToPredicate, searchQueryToMapLibreFilter, searchQueryToPredicate, expandXyzSubdomains, buildWmsUrl } from './utils';
+import { dataToGeoJson, markersToGeoJson, parseStringTemplate, filterObjectToPredicate, searchQueryToMapLibreFilter, searchQueryToPredicate, expandXyzSubdomains, buildWmsUrl } from './utils';
 import { useTranslation } from '../i18n';
 import type { FeatureCollection } from 'geojson';
 import type { CircleLayerSpecification } from 'maplibre-gl';
@@ -327,18 +327,12 @@ export function Map({
     }
 
     if (markers) {
+      const markersGeoJson = markersToGeoJson(markers);
       const list = Array.isArray(markers) ? markers : [markers];
-      const features = list
-        .filter(m => Number.isFinite(Number(m.lng)) && Number.isFinite(Number(m.lat)))
-        .map(m => ({
-          type: 'Feature' as const,
-          geometry: { type: 'Point' as const, coordinates: [Number(m.lng), Number(m.lat)] },
-          properties: { label: m.label ?? '' }
-        }));
-      if (features.length > 0) {
+      if (markersGeoJson.features.length > 0) {
         layers.push({
           name: t('map.markers'),
-          source: { type: 'geojson', data: { type: 'FeatureCollection', features } },
+          source: { type: 'geojson', data: markersGeoJson },
           popupTemplate: list.some(m => m.label) ? '<b>${label}</b>' : undefined,
           fitToContent: true,
           fitZoom: markersZoom,
