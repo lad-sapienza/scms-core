@@ -31,6 +31,30 @@ touching `overlayLayers` directly:
 <Map directus={{ table: 'sites', geoField: 'location' }} />
 ```
 
+For one or a few hand-placed points (e.g. the location of a single site) use
+`markers` — no data file needed. The map fits to them automatically; a lone
+marker is centred at a regional zoom (≥ 12) rather than zoomed to the max:
+
+```mdx
+<Map markers={{ lng: 12.4964, lat: 41.9028, label: 'Roma' }} />
+
+<Map markers={[
+  { lng: 12.49, lat: 41.90, label: 'Site A' },
+  { lng: 12.51, lat: 41.88, label: 'Site B' },
+]} />
+```
+
+`label` is optional (shown in a popup as plain text). Markers are an extra
+overlay layer and combine with any of the shorthands below.
+
+`markersZoom` fixes the zoom: the map is centred on the markers at that level
+instead of being fitted to their extent — useful to give a single site the
+same geographic context on every page:
+
+```mdx
+<Map markers={{ lng: 12.4964, lat: 41.9028, label: 'Roma' }} markersZoom={9} />
+```
+
 `geojson`/`csv`/`json`/`directus` each accept either a bare string (path/URL)
 or an object with `name`, `style`, `popup`, `fitToContent`, `filter` — see
 `MapProps` in [`types.ts`](./types.ts) for the exact shape of each.

@@ -22,6 +22,7 @@ export function Map(props: MapProps) {
   const stableGeojson = useMemo(() => props?.geojson, [JSON.stringify(props?.geojson || null)]);
   const stableCsv = useMemo(() => props?.csv, [JSON.stringify(props?.csv || null)]);
   const stableJson = useMemo(() => props?.json, [JSON.stringify(props?.json || null)]);
+  const stableMarkers = useMemo(() => props?.markers, [JSON.stringify(props?.markers || null)]);
   // `directus` feeds the same `implicitSource` → `allOverlayLayers` memo chain
   // as `geojson`/`csv`/`json`; without stabilising it here an inline
   // `directus={{ table: '…' }}` object from MDX gets a new identity on every
@@ -38,6 +39,7 @@ export function Map(props: MapProps) {
       csv={stableCsv}
       json={stableJson}
       directus={stableDirectus}
+      markers={stableMarkers}
     />
   );
 }

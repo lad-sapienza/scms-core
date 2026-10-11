@@ -78,6 +78,8 @@ export function Map({
   csv,
   json,
   directus,
+  markers,
+  markersZoom,
 }: MapProps) {
   const t = useTranslation();
   const [lng, lat, zoom] = center.split(',').map(Number);
@@ -323,8 +325,29 @@ export function Map({
       
       layers.push(layerConfig);
     }
+
+    if (markers) {
+      const list = Array.isArray(markers) ? markers : [markers];
+      const features = list
+        .filter(m => Number.isFinite(Number(m.lng)) && Number.isFinite(Number(m.lat)))
+        .map(m => ({
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: [Number(m.lng), Number(m.lat)] },
+          properties: { label: m.label ?? '' }
+        }));
+      if (features.length > 0) {
+        layers.push({
+          name: t('map.markers'),
+          source: { type: 'geojson', data: { type: 'FeatureCollection', features } },
+          popupTemplate: list.some(m => m.label) ? '<b>${label}</b>' : undefined,
+          fitToContent: true,
+          fitZoom: markersZoom,
+          visible: true
+        } as OverlayLayerConfig);
+      }
+    }
     return layers;
-  }, [overlayLayers, implicitSource, geojson, csv, mapStyle, parsedStyleLayers.overlayLayers]);
+  }, [overlayLayers, implicitSource, geojson, csv, markers, markersZoom, mapStyle, parsedStyleLayers.overlayLayers]);
 
   // Initialize and update visibility when layers change
   useEffect(() => {
@@ -479,7 +502,15 @@ export function Map({
           [Math.min(...lons), Math.min(...lats)],
           [Math.max(...lons), Math.max(...lats)]
         ];
-        map.fitBounds(bounds, { padding: 50, duration: 1000 });
+        const [[w, s], [e, n]] = bounds;
+        if (layerToFit.fitZoom !== undefined) {
+          map.easeTo({ center: [(w + e) / 2, (s + n) / 2], zoom: layerToFit.fitZoom, duration: 1000 });
+        } else if (w === e && s === n) {
+          // A lone point has no extent: fitBounds would zoom to maxZoom.
+          map.easeTo({ center: [w, s], zoom: Math.max(map.getZoom(), 12), duration: 1000 });
+        } else {
+          map.fitBounds(bounds, { padding: 50, duration: 1000 });
+        }
       }
     }, 100);
   }, [mapLoaded, layersData, allOverlayLayers]);

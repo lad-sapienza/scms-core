@@ -124,11 +124,28 @@ export interface OverlayLayerConfig {
   /** Fit map bounds to layer content */
   fitToContent?: boolean;
 
+  /**
+   * With `fitToContent`: centre on the content's bounds at this fixed zoom
+   * instead of fitting them (used by the `markers` shorthand).
+   */
+  fitZoom?: number;
+
   /** Optional client-side filter for features */
   filter?: FilterObject | ((feature: any) => boolean);
 
   /** Search configuration - defines which fields are searchable */
   searchInFields?: SearchInFields;
+}
+
+/**
+ * A single point marker for the `markers` shorthand — for maps with one or a
+ * few hand-placed points, no data file needed.
+ */
+export interface MarkerConfig {
+  lng: number;
+  lat: number;
+  /** Text shown in the popup on hover/click (plain text, HTML-escaped) */
+  label?: string;
 }
 
 export interface MapProps {
@@ -197,6 +214,19 @@ export interface MapProps {
     filter?: FilterObject | ((row: any) => boolean);
   };
   
+  /**
+   * Inline markers - one or a few hand-placed points, e.g. to give the
+   * geographic context of a single site. Rendered as an extra overlay layer
+   * and, by default, the map is fitted to them.
+   */
+  markers?: MarkerConfig | MarkerConfig[];
+
+  /**
+   * Fixed zoom for the `markers`: the map is centred on them at this zoom
+   * instead of being fitted to their extent. Handy for a single site.
+   */
+  markersZoom?: number;
+
   /** JSON shorthand - for simple single-layer maps */
   json?: any[] | string;
   

@@ -28,6 +28,7 @@ export const BUILTIN_DICTIONARY: Dictionary = {
   },
   map: {
     defaultLayerName: 'Default Layer',
+    markers: 'Markers',
     baseMaps: 'Base Maps',
     searchLayer: 'Search {name}',
     active: '(Active)',
