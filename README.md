@@ -12,6 +12,19 @@ npm install @lad-sapienza/scms-core
 
 Peer dependencies (install alongside): `astro`, `react`, `react-dom`, `maplibre-gl` (v6+), `@types/react`, `@types/react-dom`.
 
+### Requirements
+
+scms-core is an **Astro** package. It ships TypeScript, React and `.astro` sources
+that the host site's Astro/Vite pipeline compiles; it is not usable from plain
+Node, or from tooling that doesn't understand `.astro` and `.tsx`. Astro is a
+requirement of the package, not an optional extra.
+
+| Dependency | Minimum |
+|---|---|
+| `astro` | 7.2.4 |
+| `react`, `react-dom` | 19.2.4 |
+| `maplibre-gl` | 6.7.0 (needs WebGL2) |
+
 ## Usage
 
 Register the integration in `astro.config.mjs`:
@@ -48,7 +61,7 @@ import { DataTb, Map, Gallery } from '@lad-sapienza/scms-core';
 | Component | Description |
 |---|---|
 | `DataTb` | Sortable, filterable, paginated data table |
-| `MapComponent` (`Map`) | Interactive map with MapLibre GL JS |
+| `Map` | Interactive map with MapLibre GL JS |
 | `Gallery` | Responsive image gallery with lightbox |
 | `TableOfContents` | Auto-generated TOC from headings |
 | `RedirectPage` | Static client-side redirect stub (meta-refresh + JS fallback) for static hosts |

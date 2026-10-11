@@ -8,7 +8,7 @@ export { default as ThemeToggle } from './components/ThemeToggle';
 export { DataTb, CsvSource, JsonSource, DirectusSource, ApiSource } from './components/DataTb';
 
 // Map components
-export { Map as MapComponent } from './components/Map';
+export { Map } from './components/Map';
 export { SearchUI, SearchUISimple, SearchUIAdvanced } from './components/Map/Search';
 
 // ZoteroGeoViewer component

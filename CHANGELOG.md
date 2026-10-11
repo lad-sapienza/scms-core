@@ -4,6 +4,13 @@ All notable changes to `@lad-sapienza/scms-core`. Prereleases were published
 under the `alpha` dist-tag. Versions up to `0.1.0-alpha.5` were not tagged in
 git; their entries are grouped by date.
 
+## Unreleased
+
+### Removed (breaking)
+- Legacy `MapComponent` export from the package root: import `Map` instead
+  (`import { Map } from '@lad-sapienza/scms-core'`).
+- Internal `MapCore` re-export from `components/Map`.
+
 ## 0.1.0-alpha.13 — 2026-10-11
 
 ### Added
