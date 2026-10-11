@@ -32,7 +32,7 @@ export interface UseRecordFetcherResult {
  * @example
  * ```tsx
  * // src/components/RecordView.tsx
- * import { useRecordFetcher } from '@lad-sapienza/scms-core/components/Record/useRecordFetcher';
+ * import { useRecordFetcher } from '@lad-sapienza/scms-core/components/Record';
  *
  * export default function RecordView() {
  *   const { record, loading, error, table, id } = useRecordFetcher();

@@ -6,6 +6,12 @@ git; their entries are grouped by date.
 
 ## Unreleased
 
+### Changed (breaking)
+- `package.json` now declares an `exports` map. Only the documented entry
+  points resolve; deep imports such as `components/DataTb/DataTbMdx`,
+  `components/Record/useRecordFetcher` or anything under `utils/` no longer
+  work. Use the public paths listed in the README.
+
 ### Removed (breaking)
 - Legacy `MapComponent` export from the package root: import `Map` instead
   (`import { Map } from '@lad-sapienza/scms-core'`).

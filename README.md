@@ -69,7 +69,27 @@ import { DataTb, Map, Gallery } from '@lad-sapienza/scms-core';
 | `RecordProvider`, `Field`, `Image`, `RecordFetcher`, `useRecordFetcher` | Build single-record detail pages against Directus |
 | `SearchUI`, `SearchUISimple`, `SearchUIAdvanced` | Field/operator/value search UI (used by `Map`'s `searchInFields`) |
 
-A few components are reachable only via subpath import, not the root barrel — this mirrors the internal layout, no bundler config or `exports` map restricts it:
+Only the entry points below are public API: the package declares an
+[`exports`](https://nodejs.org/api/packages.html#exports) map, and importing any
+other path (e.g. `.../utils/...`, `.../components/DataTb/DataTbMdx`) fails to
+resolve. Everything is also available from the root barrel except the `.astro`
+components and the ones listed here:
+
+| Import path | Provides |
+|---|---|
+| `@lad-sapienza/scms-core` | root barrel — `DataTb`, `Map`, `Gallery`, `Record*`, `RedirectPage`, `ZoteroGeoViewer`, i18n helpers |
+| `@lad-sapienza/scms-core/scms` | `scms()` — use this (not the root) in `astro.config.mjs` |
+| `.../components/Map` | `Map`, map types, `defaultBasemaps` |
+| `.../components/DataTb`, `.../components/DataTb/types` | `DataTb` and the source components; table types |
+| `.../components/Gallery`, `.../components/Gallery/Gallery.astro` | `Gallery` (named export / `.astro` default) |
+| `.../components/Record` | `RecordProvider`, `Field`, `Image`, `RecordFetcher`, `useRecordFetcher` |
+| `.../components/ZoteroGeoViewer` | `ZoteroGeoViewer` |
+| `.../components/TableOfContents/TableOfContents.astro` | `TableOfContents` |
+| `.../components/SEO/SEO.astro` | `SEO` |
+| `.../components/BSNavbar`, `.../components/LocaleSwitcher`, `.../components/ThemeToggle` | layout components (default exports) |
+| `.../components/RedirectPage/RedirectPage.astro` | `RedirectPage` |
+| `.../components/i18n`, `.../components/i18n/I18nInit.astro` | translation helpers; `I18nInit` |
+| `.../integrations/directusLoader` | `directusLoader` for `content.config.ts` |
 
 ```js
 import SEO from '@lad-sapienza/scms-core/components/SEO/SEO.astro';

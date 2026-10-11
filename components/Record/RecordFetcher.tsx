@@ -49,7 +49,7 @@ function DefaultError({ table, id }: { table: string; id: string }) {
  * **Usage in an Astro page:**
  * ```astro
  * ---
- * import RecordFetcher from '@lad-sapienza/scms-core/components/Record/RecordFetcher.tsx';
+ * import { RecordFetcher } from '@lad-sapienza/scms-core/components/Record';
  * import MyLayout from '@components/MyRecordLayout.tsx';
  * ---
  * <RecordFetcher Layout={MyLayout} client:load />
