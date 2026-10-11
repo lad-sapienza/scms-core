@@ -50,7 +50,7 @@ export default defineConfig({
 });
 ```
 
-`scms()` bundles content-asset serving, the Gallery virtual module, Expressive Code, MDX, React, and sitemap integrations into one call, and self-registers the Vite config the components need — `dedupe`/`optimizeDeps` for React and `@tanstack/react-table` (avoids duplicate-module "Invalid hook call" errors) and `ssr.noExternal` for `maplibre-gl` (so the `Map` component's MapLibre v6 worker import resolves in the SSR pass). No extra Vite config required in the consumer.
+`scms()` bundles content-asset serving, the Gallery virtual module, Expressive Code, MDX, React, and sitemap integrations into one call, and self-registers the Vite config the components need — `dedupe`/`optimizeDeps` for React and `@tanstack/react-table` (avoids duplicate-module "Invalid hook call" errors) and `ssr.noExternal` for `maplibre-gl` (so the `Map` component's MapLibre v6 worker import resolves in the SSR pass). It also links MapLibre's stylesheet from every page so `Map` controls and popups are styled however the MDX is rendered; pass `scms({ mapCss: false })` to opt out. No extra Vite config required in the consumer.
 
 Import components from the package root in any `.mdx` file:
 

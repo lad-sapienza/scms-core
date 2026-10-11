@@ -36,6 +36,13 @@ export interface ScmsOptions {
   pagesDir?: string;
   /** Path to shared galleries, relative to the project root. Defaults to 'src/galleries'. */
   galleriesDir?: string;
+  /**
+   * Link MapLibre's stylesheet (`maplibre-gl/dist/maplibre-gl.css`, ~83 KB /
+   * ~11 KB gzipped) from every page — see `scmsMapCssIntegration`. Defaults to
+   * `true`. Set `false` for sites that never render `<Map>`, or that import the
+   * stylesheet themselves.
+   */
+  mapCss?: boolean;
 }
 
 /** react, react-dom, and any library that calls hooks internally (@tanstack/react-table) — see file doc comment. */
@@ -85,9 +92,12 @@ function scmsViteConfigIntegration(): AstroIntegration {
               // `maplibre-gl/dist/...?worker&url` import (see that file). Vite's
               // worker plugin can only resolve that specifier when maplibre-gl
               // is bundled for SSR rather than externalised to a raw Node
-              // `import` — required for consumers that render <Map> with
-              // `client:load`/`client:visible` (server pass) rather than
-              // `client:only`. MapLibre's own Astro guidance calls for this.
+              // `import`. MapLibre's own Astro guidance calls for this.
+              //
+              // This is about the worker only. It has no bearing on whether the
+              // stylesheet reaches the page — that is a separate problem, with
+              // the same symptom under every client directive (`client:load`
+              // and `client:only` alike); see `scmsMapCssIntegration`.
               noExternal: ['maplibre-gl'],
             },
           },
@@ -109,8 +119,40 @@ function scmsThemeInitIntegration(): AstroIntegration {
   };
 }
 
+/**
+ * Links MapLibre's stylesheet from every page.
+ *
+ * `Map.tsx` imports `maplibre-gl/dist/maplibre-gl.css` itself, which is enough
+ * when `<Map>` is imported straight into a page or layout. It is NOT enough
+ * for a `<Map>` imported from an MDX content-collection entry whose
+ * `render()`ed `Content` is handed down as a prop to another component (e.g.
+ * `<ArticlePage Content={Content} />`, which then renders `<Content />` inside
+ * a layout): Astro still emits the stylesheet but never links it from the
+ * page's HTML, so the layer control, zoom buttons and popups render unstyled
+ * in production builds. `astro dev` is unaffected (Vite injects CSS at
+ * runtime), which is why it only shows up after `astro build`. Reproduced on
+ * Astro 7.2.4 with `client:load` and `client:only="react"`.
+ *
+ * Importing the stylesheet from `page-ssr` puts it in every page's own module
+ * graph, so it is linked regardless of how the MDX is rendered. Costs: one
+ * cached, render-blocking ~11 KB (gzipped) request on pages that have no map —
+ * hence the `mapCss` opt-out — and, for a `<Map client:only>` imported
+ * directly into a page, a second identical-content file (Astro emits the
+ * island's copy separately), which is redundant but harmless.
+ */
+function scmsMapCssIntegration(): AstroIntegration {
+  return {
+    name: 'scms-map-css',
+    hooks: {
+      'astro:config:setup': ({ injectScript }) => {
+        injectScript('page-ssr', "import 'maplibre-gl/dist/maplibre-gl.css';");
+      },
+    },
+  };
+}
+
 export function scms(options: ScmsOptions = {}): AstroIntegration[] {
-  const { contentDir, pagesDir, galleriesDir } = options;
+  const { contentDir, pagesDir, galleriesDir, mapCss = true } = options;
 
   return [
     contentAssetsIntegration({ contentDir }),
@@ -125,5 +167,6 @@ export function scms(options: ScmsOptions = {}): AstroIntegration[] {
     sitemap(),
     scmsViteConfigIntegration(),
     scmsThemeInitIntegration(),
+    ...(mapCss ? [scmsMapCssIntegration()] : []),
   ];
 }

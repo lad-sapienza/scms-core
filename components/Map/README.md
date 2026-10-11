@@ -177,6 +177,32 @@ add `popupTemplate`/`fitToContent`/`visible` (properties the style spec
 itself has no room for). See `MapProps` in [`types.ts`](./types.ts) for the
 exact shape.
 
+## Styles (MapLibre CSS)
+
+`Map.tsx` imports `maplibre-gl/dist/maplibre-gl.css` itself, so you do not need
+to import it yourself: it styles the layer control, zoom/compass buttons,
+attribution and popups. Without it the map still renders, but those controls
+and popups appear unstyled.
+
+That import is not always linked from the page in production builds (`astro
+dev` is unaffected). It is missed when `<Map>` is imported from an MDX
+content-collection entry whose `render()`ed `Content` is passed as a prop to
+another component (e.g. `<ArticlePage Content={Content} />`): Astro emits the
+CSS file but no page links it. This happens with every client directive
+(`client:load` and `client:only="react"` alike).
+
+`scms()` works around this by linking the stylesheet from every page. If you
+are on a version that predates that fix, or you set `scms({ mapCss: false })`
+(e.g. because the site has no maps, or to avoid the stylesheet on pages
+without one), import it once in your layout instead:
+
+```astro
+---
+// src/layouts/BaseLayout.astro
+import 'maplibre-gl/dist/maplibre-gl.css';
+---
+```
+
 ## Props
 
 ### `Map`

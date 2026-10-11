@@ -42,11 +42,34 @@ describe('scms', () => {
     expect(capturedConfig.vite.optimizeDeps.include).not.toContain('maplibre-gl');
 
     // maplibre-gl must be bundled for SSR, not externalised, so Vite's worker
-    // plugin can resolve Map.tsx's `?worker&url` import in the server pass
-    // (needed for `client:load`/`client:visible` <Map> usage).
+    // plugin can resolve Map.tsx's `?worker&url` import in the server pass.
     expect(capturedConfig.vite.ssr.noExternal).toEqual(
       expect.arrayContaining(['maplibre-gl'])
     );
+  });
+
+  // Regression: <Map> imported from an MDX content entry whose `Content` is
+  // passed as a prop to another component got no <link> to the MapLibre CSS in
+  // production builds (reproduced on Astro 7.2.4, client:load and client:only).
+  // Injecting the import into every page's SSR module is what links it.
+  it('injects the MapLibre stylesheet into every page by default', () => {
+    const integration = scms().find((i) => i.name === 'scms-map-css');
+    expect(integration).toBeDefined();
+
+    const injectScript = vi.fn();
+    const setupHook = integration!.hooks?.['astro:config:setup'];
+    // @ts-expect-error - minimal fake hook params, only what the hook uses
+    setupHook({ injectScript });
+
+    expect(injectScript).toHaveBeenCalledWith(
+      'page-ssr',
+      expect.stringContaining("maplibre-gl/dist/maplibre-gl.css")
+    );
+  });
+
+  it('omits the MapLibre stylesheet injection when mapCss is false', () => {
+    const names = scms({ mapCss: false }).map((i) => i.name);
+    expect(names).not.toContain('scms-map-css');
   });
 
   it('includes the content-assets and gallery integrations', () => {
