@@ -4,7 +4,7 @@ All notable changes to `@lad-sapienza/scms-core`. Prereleases were published
 under the `alpha` dist-tag. Versions up to `0.1.0-alpha.5` were not tagged in
 git; their entries are grouped by date.
 
-## Unreleased
+## 0.1.1 — 2026-10-11
 
 ### Fixed
 - `<Map>` controls and popups were unstyled in production builds when the map
