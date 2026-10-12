@@ -34,6 +34,17 @@ Limits, quality and the site languages are configured in `src/user.config.mjs` (
 npm update @lad-sapienza/scms-core
 ```
 
+## Dependabot
+
+`.github/dependabot.yml` opens weekly pull requests for npm dependencies (s:CMS core on its own, minor and patch grouped, majors one by one; TypeScript majors are skipped because `@astrojs/check` does not support them yet) and monthly ones for GitHub Actions. Every pull request runs the build without deploying.
+
+Patch-only pull requests are merged automatically by `.github/workflows/dependabot-automerge.yml`. For this to work, in the repository settings:
+
+1. Enable **Allow auto-merge** (Settings → General).
+2. Add a branch protection rule on `main` that requires the `build` status check and **Require branches to be up to date before merging**. Without it, a patch merged right after another can leave `package-lock.json` out of sync and break `npm ci`.
+
+The workflows assume the default branch is called `main`; adjust the `branches` lists if yours is not.
+
 ## Project structure
 
 ```

@@ -4,6 +4,35 @@ All notable changes to `@lad-sapienza/scms-core`. Prereleases were published
 under the `alpha` dist-tag. Versions up to `0.1.0-alpha.5` were not tagged in
 git; their entries are grouped by date.
 
+## Unreleased — to be released as 0.2.0
+
+Must be a **minor**, not a patch: sites depending on `^0.1.x` would otherwise
+pick this up automatically (see `RELEASING.md`).
+
+### Changed (breaking)
+- `@astrojs/react` 6 → 7: the integration now uses `@vitejs/plugin-react` v6
+  with Oxc for JSX and Fast Refresh. The `babel` option of `react()` is gone.
+- `@astrojs/mdx` 7 → 8: MDX processing is delegated to Markdown processors.
+  Needs `astro ^7.2.10`.
+
+### Migrating a site
+- Remove `overrides["@vitejs/plugin-react"]` from the site's `package.json`.
+  With the override the build still works, but logs deprecation warnings and
+  runs an unsupported combination.
+- If the site passes `babel` to `react()`, move those plugins and presets to
+  `@rolldown/plugin-babel` under `vite.plugins`.
+- `@astrojs/react` 7 declares `oxc-transform-react` as a peer dependency.
+- `maplibre-gl` stays at `^6.7.0` (the peer range is unchanged).
+
+### Added
+- `scms-create` templates ship `.github/dependabot.yml` and
+  `.github/workflows/dependabot-automerge.yml`; the deploy workflow now also
+  runs a build-only check on pull requests.
+
+### Internal
+- GitHub Actions CI (typecheck, tests, build e2e) and Dependabot for this
+  repository; vitest 5.
+
 ## 0.1.1 — 2026-10-11
 
 ### Fixed

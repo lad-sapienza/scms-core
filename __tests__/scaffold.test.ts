@@ -59,6 +59,17 @@ describe('scms-create', () => {
     expect(readFileSync(join(site, 'src/user.config.mjs'), 'utf8')).toContain('My Test Site');
   });
 
+  it('ships the CI and Dependabot setup, and PR builds never deploy', () => {
+    for (const f of ['dependabot.yml', 'workflows/deploy.yml', 'workflows/dependabot-automerge.yml']) {
+      expect(existsSync(join(site, '.github', f))).toBe(true);
+    }
+    const deploy = readFileSync(join(site, '.github/workflows/deploy.yml'), 'utf8');
+    expect(deploy).toContain('pull_request:');
+    // upload and deploy are both skipped on PRs, and PRs get their own concurrency group
+    expect(deploy.match(/if: github\.event_name != 'pull_request'/g)).toHaveLength(2);
+    expect(deploy).toContain("format('pr-{0}', github.ref)");
+  });
+
   it('refuses to scaffold into a non-empty directory', () => {
     const again = spawnSync('node', [CREATE, 'my-site'], {
       cwd: workdir,
