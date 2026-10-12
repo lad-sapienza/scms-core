@@ -65,7 +65,7 @@
     "@astrojs/mdx": "^8.0.3",
     "@astrojs/react": "^7.0.1",
     "@astrojs/sitemap": "^3.7.3",
-    "@directus/sdk": "^21.2.0",
+    "@directus/sdk": "^27.0.0",
     "@expressive-code/plugin-line-numbers": "^0.44.1",
     "@tanstack/react-table": "^8.21.3",
     "@types/geojson": "^7946.0.16",
