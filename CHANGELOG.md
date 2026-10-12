@@ -4,6 +4,20 @@ All notable changes to `@lad-sapienza/scms-core`. Prereleases were published
 under the `alpha` dist-tag. Versions up to `0.1.0-alpha.5` were not tagged in
 git; their entries are grouped by date.
 
+## 0.2.1 — 2026-10-12
+
+### Changed
+- Peer dependency `astro` raised from `^7.2.4` to `^7.2.10`: this is what
+  `@astrojs/mdx` 8 (a dependency since 0.2.0) already required, so no site that
+  installed 0.2.0 is affected. `scms-create` now scaffolds
+  `@astrojs/markdown-remark` `^7.3.0` instead of deriving it from the Astro
+  version.
+
+### Migrating a site
+- If the site declares `@astrojs/markdown-remark` and its lockfile pins 7.2.x,
+  the build fails with ``` `@astrojs/markdown-remark` is too old to render
+  `.mdx` files ``` (see the 0.2.0 notes below).
+
 ## 0.2.0 — 2026-10-12
 
 A minor, not a patch: sites depending on `^0.1.x` would otherwise pick this up
@@ -21,6 +35,12 @@ automatically (see `RELEASING.md`).
 - Remove `overrides["@vitejs/plugin-react"]` from the site's `package.json`.
   With the override the build still works, but logs deprecation warnings and
   runs an unsupported combination.
+- If the site declares `@astrojs/markdown-remark`, raise it to `^7.3.0`
+  (`@astrojs/mdx` 8 requires it) and regenerate the lockfile:
+  `npm install @astrojs/markdown-remark@^7.3.0`. `npm update` is not enough
+  when the lockfile pins 7.2.x. Build error when it is too old:
+  `` `@astrojs/markdown-remark` is too old to render `.mdx` files. Update it
+  to the latest version: npm install @astrojs/markdown-remark@latest ``
 - If the site passes `babel` to `react()`, move those plugins and presets to
   `@rolldown/plugin-babel` under `vite.plugins`.
 - `@astrojs/react` 7 declares `oxc-transform-react` as a peer dependency.

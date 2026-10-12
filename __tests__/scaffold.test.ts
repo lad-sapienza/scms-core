@@ -70,6 +70,12 @@ describe('scms-create', () => {
     expect(deploy).toContain("format('pr-{0}', github.ref)");
   });
 
+  it('pins @astrojs/markdown-remark to what @astrojs/mdx requires', () => {
+    const mdx = JSON.parse(readFileSync(resolve(__dirname, '../node_modules/@astrojs/mdx/package.json'), 'utf8'));
+    const pkg = JSON.parse(readFileSync(join(site, 'package.json'), 'utf8'));
+    expect(pkg.dependencies['@astrojs/markdown-remark']).toBe(mdx.peerDependencies['@astrojs/markdown-remark']);
+  });
+
   it('refuses to scaffold into a non-empty directory', () => {
     const again = spawnSync('node', [CREATE, 'my-site'], {
       cwd: workdir,

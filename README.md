@@ -21,9 +21,23 @@ requirement of the package, not an optional extra.
 
 | Dependency | Minimum |
 |---|---|
-| `astro` | 7.2.4 |
+| `astro` | 7.2.10 |
 | `react`, `react-dom` | 19.2.4 |
 | `maplibre-gl` | 6.7.0 (needs WebGL2) |
+
+## Upgrading from 0.1.x
+
+0.2.0 moves to `@astrojs/react` 7 and `@astrojs/mdx` 8. In your site:
+
+- Remove `overrides["@vitejs/plugin-react"]` from `package.json`.
+- If the site declares `@astrojs/markdown-remark`, raise it to `^7.3.0` and
+  regenerate the lockfile: `npm install @astrojs/markdown-remark@^7.3.0`.
+  `npm update` is not enough when the lockfile pins 7.2.x; the build then
+  fails with ``` `@astrojs/markdown-remark` is too old to render `.mdx` files ```.
+- If the site passes `babel` to `react()`, move it to `@rolldown/plugin-babel`
+  under `vite.plugins`.
+
+See [CHANGELOG.md](CHANGELOG.md) for the full list.
 
 ## Usage
 

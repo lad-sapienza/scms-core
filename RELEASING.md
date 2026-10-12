@@ -12,8 +12,11 @@ While the package is `0.x`, `^0.1.x` only matches `0.1.*`, so:
   changes no site can notice.
 - Anything that needs a site to change something is at least a **minor**
   (`0.2.0`): a major bump of a runtime dependency (`astro`, `@astrojs/*`,
-  `react`, `maplibre-gl`, `@directus/sdk`, ...), a changed peer range, a removed
-  or renamed export.
+  `react`, `maplibre-gl`, `@directus/sdk`, ...), a removed or renamed export,
+  and a peer range change that stops something installing that installs today.
+  A peer change that only makes an already-effective constraint explicit (e.g.
+  declaring the `astro` floor a dependency already imposes) may be a patch; say
+  so in the CHANGELOG.
 
 ## Checklist
 
