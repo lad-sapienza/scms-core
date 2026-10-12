@@ -4,16 +4,18 @@ All notable changes to `@lad-sapienza/scms-core`. Prereleases were published
 under the `alpha` dist-tag. Versions up to `0.1.0-alpha.5` were not tagged in
 git; their entries are grouped by date.
 
-## Unreleased — to be released as 0.2.0
+## 0.2.0 — 2026-10-12
 
-Must be a **minor**, not a patch: sites depending on `^0.1.x` would otherwise
-pick this up automatically (see `RELEASING.md`).
+A minor, not a patch: sites depending on `^0.1.x` would otherwise pick this up
+automatically (see `RELEASING.md`).
 
 ### Changed (breaking)
 - `@astrojs/react` 6 → 7: the integration now uses `@vitejs/plugin-react` v6
   with Oxc for JSX and Fast Refresh. The `babel` option of `react()` is gone.
 - `@astrojs/mdx` 7 → 8: MDX processing is delegated to Markdown processors.
   Needs `astro ^7.2.10`.
+- `@directus/sdk` 21 → 27 (internal; the `directus` source options are
+  unchanged). Not exercised against a live Directus instance by the test suite.
 
 ### Migrating a site
 - Remove `overrides["@vitejs/plugin-react"]` from the site's `package.json`.
