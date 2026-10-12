@@ -13,9 +13,11 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 // MapLibre GL JS v6 no longer resolves and loads its Web Worker automatically
 // (v5 did): a bundler-based app must hand the library a worker URL itself
 // before the first map is constructed. `?worker&url` runs the dist worker
-// through Vite's worker pipeline so its sibling `maplibre-gl-shared.mjs` is
-// bundled into a self-contained chunk — a plain `?url` import leaves the worker
-// unable to load that sibling in production builds. This runs at module-eval
+// through Vite's worker pipeline so it is emitted as a self-contained chunk,
+// whatever its internal imports. Before 6.13 the worker imported a sibling
+// `maplibre-gl-shared.mjs`, which a plain `?url` import left unresolvable in
+// production builds; from 6.13 the worker is self-sufficient, but `?worker&url`
+// works across the whole supported peer range. This runs at module-eval
 // time, before `@vis.gl/react-maplibre` dynamically imports maplibre-gl and
 // calls `new Map()`, so the URL is always registered in time. Consuming sites
 // need no worker config of their own.

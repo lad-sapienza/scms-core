@@ -258,6 +258,8 @@ import 'maplibre-gl/dist/maplibre-gl.css';
   imports `maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url` and calls
   `setWorkerUrl()` at module load, before `@vis.gl/react-maplibre` constructs
   any map. `?worker&url` (not `?url`) routes the worker through Vite's worker
-  pipeline so its `maplibre-gl-shared.mjs` sibling is bundled in. `scms.ts`
+  pipeline so it is emitted as a self-contained chunk (before maplibre-gl 6.13
+  the worker imported a sibling `maplibre-gl-shared.mjs`; from 6.13 it is
+  self-sufficient, and `?worker&url` works on both). `scms.ts`
   adds `ssr.noExternal: ['maplibre-gl']` so that import also resolves in the
   SSR pass for consumers rendering `<Map client:load>`.
