@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22 # astro 7 requires >=22.12
+          cache: npm
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  # Packs the package and builds a real Astro site with it (~20-50 s, needs
+  # network). The only check that catches build breakage from astro/maplibre bumps.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npx vitest run __tests__/e2e
+        env:
+          SCMS_E2E: '1'
+
+  # Dependabot PRs must not change the package `version` or the peer ranges
+  # that consuming sites rely on.
+  manifest-guard:
+    if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: version and peerDependencies unchanged
+        run: |
+          git show origin/${{ github.base_ref }}:package.json > "$RUNNER_TEMP/base.json"
+          BASE="$RUNNER_TEMP/base.json" node -e '
+            const b = require(process.env.BASE), h = require("./package.json");
+            const bad = [];
+            if (b.version !== h.version) bad.push(`version: ${b.version} -> ${h.version}`);
+            if (JSON.stringify(b.peerDependencies) !== JSON.stringify(h.peerDependencies))
+              bad.push("peerDependencies changed");
+            if (bad.length) { console.error(bad.join("\n")); process.exit(1); }
+          '
