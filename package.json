@@ -67,7 +67,7 @@
     "@astrojs/sitemap": "^3.7.3",
     "@directus/sdk": "^27.0.0",
     "@expressive-code/plugin-line-numbers": "^0.44.1",
-    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-table": "^9.2.8",
     "@types/geojson": "^7946.0.16",
     "@types/papaparse": "^5.5.2",
     "@vis.gl/react-maplibre": "^8.1.3",
