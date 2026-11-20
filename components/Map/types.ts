@@ -6,6 +6,7 @@ import type { SourceConfig } from '../../utils/data-fetcher';
 import type { BasemapKey } from './defaultBasemaps';
 import type { FilterObject } from './utils';
 import type { DirectusShorthand } from '../../utils/directus-config';
+import type { BdusShorthand } from '../../utils/bdus-config';
 
 /**
  * Search field configuration
@@ -233,6 +234,23 @@ export interface MapProps {
   /** Directus shorthand - for simple single-layer maps */
   directus?: DirectusShorthand & {
     geoField?: string;
+    name?: string;
+    style?: any;
+    popup?: string;
+    fitToContent?: boolean;
+  };
+
+  /**
+   * bdus5 shorthand - for simple single-layer maps. Realtime-only (one
+   * request, like `directus` above): only works for a table whose
+   * coordinates are a plain `core` field (`geoField`, or `csv`-style
+   * lat/lng auto-detection) — a table using bdus5's `geodata` plugin table
+   * needs the build-time path instead (fetch with `bdusLoader`/
+   * `bdusToFeatureCollection`, pass the result into `geojson` instead of
+   * using this shorthand). See the main package README's "Directus vs.
+   * bdus5" table.
+   */
+  bdus?: BdusShorthand & {
     name?: string;
     style?: any;
     popup?: string;

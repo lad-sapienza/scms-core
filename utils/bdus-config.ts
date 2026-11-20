@@ -67,6 +67,18 @@ export interface BdusShorthand {
    * bdus5" table).
    */
   mode?: BdusMode;
+
+  /**
+   * Name of a `core` field holding a geometry, for `Map`'s point conversion
+   * — same idea as Directus's `geoField`. Only works for bdus5 tables that
+   * store coordinates as a plain field (or see `Map`'s `lng`/`lat`-style
+   * auto-detection); a table whose geometry lives in bdus5's `geodata`
+   * plugin table cannot be plotted this way — that costs one request per
+   * row (see module docs) and needs the build-time path instead
+   * (`bdusLoader`/`bdusToFeatureCollection`, passed into `Map`'s `geojson`
+   * prop as already-built data).
+   */
+  geoField?: string;
 }
 
 /** Full bdus5 source configuration (internal format used by data-fetcher) */
@@ -80,6 +92,8 @@ export interface BdusSourceConfig {
   fields?: string[];
   sort?: string[];
   limit?: number;
+  /** GeoJSON/geometry field name (for Map's point conversion) — see BdusShorthand.geoField. */
+  geoField?: string;
 }
 
 /**

@@ -3,7 +3,7 @@
 Interactive map built on [MapLibre GL JS](https://maplibre.org/) **v6** (via
 `@vis.gl/react-maplibre`). Renders a raster basemap, any number of toggleable
 overlay layers pulled from heterogeneous data sources (GeoJSON, CSV, JSON,
-Directus, a generic API, or raster XYZ/WMS tiles), and a built-in layer
+Directus, bdus5, a generic API, or raster XYZ/WMS tiles), and a built-in layer
 control for switching basemaps and toggling overlays.
 
 MapLibre v6 requires **WebGL2** (universally supported by current browsers) and
@@ -29,7 +29,14 @@ touching `overlayLayers` directly:
 <Map csv={{ path: '/data/sites.csv', lng: 'longitude', lat: 'latitude' }} />
 
 <Map directus={{ table: 'sites', geoField: 'location' }} />
+
+<Map bdus={{ tb: 'sites', geoField: 'location' }} />
 ```
+
+`bdus` is realtime-only (one request) and only plots a table whose
+coordinates are a plain `core` field (`geoField` above, or `csv`-style
+lat/lng auto-detection) — a table using bdus5's `geodata` plugin table
+instead needs the build-time path: see "bdus5 with full geometry" below.
 
 For one or a few hand-placed points (e.g. the location of a single site) use
 `markers` — no data file needed. The map fits to them automatically; a lone
@@ -55,9 +62,43 @@ same geographic context on every page:
 <Map markers={{ lng: 12.4964, lat: 41.9028, label: 'Roma' }} markersZoom={9} />
 ```
 
-`geojson`/`csv`/`json`/`directus` each accept either a bare string (path/URL)
-or an object with `name`, `style`, `popup`, `fitToContent`, `filter` — see
-`MapProps` in [`types.ts`](./types.ts) for the exact shape of each.
+`geojson`/`csv`/`json`/`directus`/`bdus` each accept either a bare string
+(path/URL — not applicable to `directus`/`bdus`) or an object with `name`,
+`style`, `popup`, `fitToContent`, `filter` — see `MapProps` in
+[`types.ts`](./types.ts) for the exact shape of each.
+
+### bdus5 with full geometry (build-time)
+
+A bdus5 table whose geometry lives in the `geodata` plugin table (not a
+plain `core` field) can't be fetched realtime — that costs one request per
+row (see the main package README's "Directus vs. bdus5" table). Fetch it at
+build time instead, as a `bdusLoader`-backed content collection, and convert
+its entries with `dataToGeoJson` (which already understands the `_geometry`
+property `normalizeBdusRecord`/`bdusLoader` attach to every row):
+
+```astro
+---
+import { getCollection } from 'astro:content';
+import { Map, dataToGeoJson } from '@lad-sapienza/scms-core/components/Map';
+
+const sites = await getCollection('sites'); // a bdusLoader collection, see content.config.ts
+const geojson = dataToGeoJson(sites.map((entry) => entry.data));
+---
+<Map geojson={geojson} client:only="react" />
+```
+
+This is the same `{type:'geojson', data}` path the `geojson` shorthand
+already supports — `dataToGeoJson` just builds the `FeatureCollection` for
+you from already-fetched rows, for any backend that produces a `_geometry`
+property (not bdus5-specific).
+
+It carries every row property through as-is (minus `_geometry`/`_id`), which
+is usually fine but means a non-primitive one (e.g. bdus5's `_files`/
+`_plugins`/`_bibliography`) reaches the feature's properties too — harmless
+unless a `popupTemplate` or style expression references it (MapLibre
+`JSON.stringify`s anything non-primitive in a GeoJSON source's properties).
+Map over `entry.data` to a smaller object first if you want a leaner payload
+or to pre-join an array-ish field into a plain string for a popup.
 
 ## Base layers (`baseLayers`)
 
@@ -98,6 +139,7 @@ overrides), `popupTemplate`, `fitToContent`, `filter`, `searchInFields`:
 | `csv` | `{ url, lng?, lat?, delimiter?, skipRows? }` — auto-detects lat/lng column names if `lng`/`lat` aren't given |
 | `json` | `{ data }` inline array or `{ url }` |
 | `directus` | Directus collection query, `geoField` names the geometry column |
+| `bdus` | bdus5 table query (lean/realtime only), `geoField` names a plain `core` geometry field — see "bdus5 with full geometry" below for the `geodata`-plugin case |
 | `api` | Generic `{ url, method?, headers?, body?, transformer? }` |
 | `vector` | MapLibre vector-tile source (only produced internally when parsing a full `mapStyle`) |
 
@@ -215,7 +257,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 | `overlayLayers` | `OverlayLayerConfig[]` | `[]` | See above |
 | `mapStyle` | `string \| object` | — | Full MapLibre style, see above |
 | `styleOverrides` | `object` | — | Per-layer patches when using `mapStyle` |
-| `geojson` / `csv` / `json` / `directus` | — | — | Single-layer shorthands, see Basic usage |
+| `geojson` / `csv` / `json` / `directus` / `bdus` | — | — | Single-layer shorthands, see Basic usage |
 | `sprite` | `string` | — | Sprite URL |
 
 ### `BaseLayerConfig`

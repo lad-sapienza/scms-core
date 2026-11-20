@@ -28,6 +28,8 @@ export function Map(props: MapProps) {
   // `directus={{ table: '…' }}` object from MDX gets a new identity on every
   // render and drives the same render loop the others are memoised against.
   const stableDirectus = useMemo(() => props?.directus, [JSON.stringify(props?.directus || null)]);
+  // Same reasoning as stableDirectus above, for the bdus5 shorthand.
+  const stableBdus = useMemo(() => props?.bdus, [JSON.stringify(props?.bdus || null)]);
 
   return (
     <MapCore
@@ -39,6 +41,7 @@ export function Map(props: MapProps) {
       csv={stableCsv}
       json={stableJson}
       directus={stableDirectus}
+      bdus={stableBdus}
       markers={stableMarkers}
     />
   );

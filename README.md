@@ -122,9 +122,9 @@ both:
 | | Directus | bdus5 |
 |---|---|---|
 | Config env vars | `PUBLIC_DIRECTUS_URL` / `PUBLIC_DIRECTUS_TOKEN` (client-exposed) | `BDUS_BASE_URL` / `BDUS_API_KEY` (build-time only) for loaders/listings; `PUBLIC_BDUS_URL` / `PUBLIC_BDUS_TOKEN` (client-exposed) for single-record fetches only |
-| `DataTb` / `Map` live sources, many rows | ✅ one request | ✅ one request (lean fields only — no geometry/files/plugins) |
+| `DataTb` / `Map` live sources, many rows | ✅ one request | ✅ one request (lean fields only — no geometry/files/plugins; `Map`'s `bdus` shorthand plots a table whose coordinates are a plain field this way) |
 | Single record (`RecordFetcher` / `useRecordFetcher`) | ✅ one request | ✅ one request |
-| Many rows + geometry/files/plugins (map overlays, galleries) | ✅ one request | ⚠️ one request *per row* — use `bdusLoader` or `bdusQueryFull`/`bdusToFeatureCollection` (internal to the package; called from a loader or from an Astro component's own frontmatter) at build time, not from a browser-fetching component |
+| Many rows + geometry/files/plugins (map overlays, galleries) | ✅ one request | ⚠️ one request *per row* — fetch at build time instead: `bdusLoader` (a content collection) or `bdusQueryFull`/`bdusToFeatureCollection` from an Astro component's own frontmatter, then convert with `Map`'s exported `dataToGeoJson` and pass the result to `geojson` (see `components/Map/README.md` → "bdus5 with full geometry") |
 
 bdus5's shorthand/options (`BdusShorthand`, `BdusListOptions`) accept an
 optional `mode: 'realtime' | 'build'` declaring which of the two rows above a

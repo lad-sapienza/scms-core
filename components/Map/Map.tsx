@@ -29,6 +29,7 @@ import type { MapProps, OverlayLayerConfig } from './types';
 import { RasterLayerLibre } from './RasterLayerLibre';
 import { LayerControlIControl } from './LayerControl';
 import { directusShorthandToConfig } from '../../utils/directus-config';
+import { bdusShorthandToConfig } from '../../utils/bdus-config';
 import type { BaseLayerConfig } from './types';
 import { defaultBasemaps, getBasemap } from './defaultBasemaps';
 import { fetchData } from '../../utils/data-fetcher';
@@ -80,6 +81,7 @@ export function Map({
   csv,
   json,
   directus,
+  bdus,
   markers,
   markersZoom,
 }: MapProps) {
@@ -268,11 +270,26 @@ export function Map({
       if (config && directus.geoField) {
         config.geoField = directus.geoField;
       }
-      
+
+      return config;
+    }
+    if (bdus) {
+      const config = bdusShorthandToConfig({
+        tb: bdus.tb,
+        queryString: bdus.queryString,
+        baseUrl: bdus.baseUrl,
+        apiKey: bdus.apiKey,
+        mode: bdus.mode,
+      });
+
+      if (config && bdus.geoField) {
+        config.geoField = bdus.geoField;
+      }
+
       return config;
     }
     return null;
-  }, [geojson, csv, json, directus]);
+  }, [geojson, csv, json, directus, bdus]);
 
   // Combine explicit overlayLayers with implicit source
   const allOverlayLayers = useMemo(() => {
@@ -324,7 +341,13 @@ export function Map({
         if (directus.popup) layerConfig.popupTemplate = directus.popup;
         if (directus.fitToContent !== undefined) layerConfig.fitToContent = directus.fitToContent;
       }
-      
+      if (bdus) {
+        if (bdus.name) layerConfig.name = bdus.name;
+        if (bdus.style) layerConfig.style = bdus.style;
+        if (bdus.popup) layerConfig.popupTemplate = bdus.popup;
+        if (bdus.fitToContent !== undefined) layerConfig.fitToContent = bdus.fitToContent;
+      }
+
       layers.push(layerConfig);
     }
 
@@ -343,7 +366,7 @@ export function Map({
       }
     }
     return layers;
-  }, [overlayLayers, implicitSource, geojson, csv, markers, markersZoom, mapStyle, parsedStyleLayers.overlayLayers]);
+  }, [overlayLayers, implicitSource, geojson, csv, directus, bdus, markers, markersZoom, mapStyle, parsedStyleLayers.overlayLayers]);
 
   // Initialize and update visibility when layers change
   useEffect(() => {
@@ -423,8 +446,9 @@ export function Map({
           const customLng = layer.source.type === 'csv' ? layer.source.lng : undefined;
           const customLat = layer.source.type === 'csv' ? layer.source.lat : undefined;
 
-          // Extract geoField from Directus source if provided
-          const geoField = layer.source.type === 'directus' ? layer.source.geoField : undefined;
+          // Extract geoField from Directus/bdus5 source if provided
+          const geoField =
+            layer.source.type === 'directus' || layer.source.type === 'bdus' ? layer.source.geoField : undefined;
 
           const geoJson = dataToGeoJson(data, customLng, customLat, geoField);
           rawSourceCache.current.set(layerKey, geoJson);

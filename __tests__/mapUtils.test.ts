@@ -63,6 +63,19 @@ describe('dataToGeoJson', () => {
     const fc = dataToGeoJson([{ _geometry: geom, name: 'a' }]);
     expect(fc.features[0].geometry).toEqual(geom);
   });
+
+  it('accepts normalizeBdusRecord output directly — the build-time "cover everything" path for bdus5', async () => {
+    const { normalizeBdusRecord } = await import('../utils/bdus-client');
+    const row = normalizeBdusRecord({
+      metadata: { rec_id: 98 },
+      core: { id: { val: 98 }, site_name: { val: 'Acquedotto di Butrinto' } },
+      geodata: { 91: { geojson: { type: 'Point', coordinates: [20, 39] } } },
+    });
+    const fc = dataToGeoJson([row]);
+    expect(fc.features).toHaveLength(1);
+    expect(fc.features[0].geometry).toEqual({ type: 'Point', coordinates: [20, 39] });
+    expect(fc.features[0].properties?.site_name).toBe('Acquedotto di Butrinto');
+  });
 });
 
 describe('markersToGeoJson', () => {

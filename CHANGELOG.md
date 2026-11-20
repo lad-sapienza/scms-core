@@ -4,6 +4,26 @@ All notable changes to `@lad-sapienza/scms-core`. Prereleases were published
 under the `alpha` dist-tag. Versions up to `0.1.0-alpha.5` were not tagged in
 git; their entries are grouped by date.
 
+## 0.3.1 — 2026-11-20
+
+A patch: closes a gap left by 0.3.0 — `Map` had no bdus5 support at all, so
+bdus5 couldn't yet "cover everything" Directus does for this component.
+No change required for sites that don't use it.
+
+### Added
+- `Map`'s `bdus` shorthand prop (and `OverlayLayerConfig.source: {type:
+  'bdus', ...}`), mirroring `directus`: realtime-only, one request, plots a
+  table whose coordinates are a plain `core` field (`geoField`, or
+  `csv`-style lat/lng auto-detection).
+- `dataToGeoJson`/`getGeoFields` now exported from
+  `@lad-sapienza/scms-core/components/Map` — the build-time counterpart for
+  a bdus5 table whose geometry lives in the `geodata` plugin table instead
+  (one request per row, so it must be fetched at build time): convert a
+  `bdusLoader`-backed content collection's entries with `dataToGeoJson`
+  (already understands the `_geometry` property bdus5 normalization
+  attaches) and pass the result to `geojson`. See `components/Map/README.md`
+  → "bdus5 with full geometry" and the main README's "Directus vs. bdus5".
+
 ## 0.3.0 — 2026-11-20
 
 A minor: new, opt-in data source, no change required for sites that don't
