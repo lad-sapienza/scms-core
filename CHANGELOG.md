@@ -4,6 +4,23 @@ All notable changes to `@lad-sapienza/scms-core`. Prereleases were published
 under the `alpha` dist-tag. Versions up to `0.1.0-alpha.5` were not tagged in
 git; their entries are grouped by date.
 
+## 0.3.2 — 2026-11-20
+
+A patch: new, opt-in helper for an existing pattern (`getStaticPaths` +
+`RecordProvider`/`Field`), no change required for sites that don't use it.
+
+### Added
+- `recordStaticPaths` (`@lad-sapienza/scms-core/components/Record`): turns
+  content-collection entries into `getStaticPaths`' return shape — the
+  archival/"frozen" counterpart to `RecordFetcher`/`useRecordFetcher`. A
+  record page built this way pre-renders one static page per row at build
+  time, with zero runtime dependency on Directus/bdus5, instead of fetching
+  client-side on every page view — the right choice for a finished research
+  project whose database won't be kept running indefinitely. Works with any
+  collection (Directus- or bdus5-backed, or any other loader) since it only
+  relies on the standard `{id, data}` entry shape; `RecordProvider`/`Field`/
+  `Image` are unchanged either way.
+
 ## 0.3.1 — 2026-11-20
 
 A patch: closes a gap left by 0.3.0 — `Map` had no bdus5 support at all, so
