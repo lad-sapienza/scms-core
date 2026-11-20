@@ -9,6 +9,7 @@ import { useMemo } from 'react';
 import { DataTb as DataTbCore } from './DataTb';
 import type { DataTbProps, SourceConfig } from './types';
 import { directusShorthandToConfig } from '../../utils/directus-config';
+import { bdusShorthandToConfig } from '../../utils/bdus-config';
 
 export function DataTb(props: DataTbProps) {
   // Resolve source from simplified props or original source prop
@@ -40,8 +41,14 @@ export function DataTb(props: DataTbProps) {
       return directusSource ?? undefined;
     }
 
+    // Handle simplified bdus5 prop
+    if (props.bdus) {
+      const bdusSource = bdusShorthandToConfig(props.bdus);
+      return bdusSource ?? undefined;
+    }
+
     return undefined;
-  }, [props.source, props.csv, props.json, props.api, JSON.stringify(props.directus)]);
+  }, [props.source, props.csv, props.json, props.api, JSON.stringify(props.directus), JSON.stringify(props.bdus)]);
 
   // Memoize the source object to prevent re-creation on every render
   // This is critical for MDX which might recreate objects on every pass

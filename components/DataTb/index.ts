@@ -12,6 +12,7 @@ export {
   CsvSource,
   JsonSource,
   DirectusSource,
+  BdusSource,
   ApiSource,
 } from './sources';
 
@@ -24,6 +25,7 @@ export type {
   CsvSourceConfig,
   JsonSourceConfig,
   DirectusSourceConfig,
+  BdusSourceConfig,
   ApiSourceConfig,
   SourceConfig,
 } from './types';
@@ -32,5 +34,6 @@ export type {
   CsvSourceProps,
   JsonSourceProps,
   DirectusSourceProps,
+  BdusSourceProps,
   ApiSourceProps,
 } from './sources';

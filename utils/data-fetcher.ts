@@ -1,6 +1,7 @@
 import Papa from 'papaparse';
 import { createDirectus, rest, staticToken, readItems, readItem } from '@directus/sdk';
 import type { SourceConfig } from '../components/DataTb/types';
+import { bdusListAll } from './bdus-client';
 
 export type { SourceConfig } from '../components/DataTb/types';
 export type DataRow = Record<string, any>;
@@ -69,6 +70,21 @@ export async function fetchData(source: SourceConfig): Promise<DataRow[]> {
         const items = await client.request(readItems(source.collection, queryOptions));
         fetchedData = items as any[];
       }
+      break;
+
+    case 'bdus':
+      if (!source.config) throw new Error('bdus5 configuration required');
+      // Lean list endpoint: one request for up to `limit` rows, already flat
+      // (no per-row full-detail fetch). Fine for live client-side use, same
+      // cost profile as the 'directus' case above. For geometry or
+      // files/plugins detail, fetch at build time instead (see bdus-client.ts).
+      fetchedData = await bdusListAll(source.config, source.tb, {
+        filter: source.filter,
+        fields: source.fields,
+        sortField: source.sort?.[0]?.replace(/^-/, ''),
+        sortDir: source.sort?.[0]?.startsWith('-') ? 'desc' : 'asc',
+        limit: source.limit,
+      });
       break;
 
     case 'geojson':

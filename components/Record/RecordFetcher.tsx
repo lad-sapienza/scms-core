@@ -1,14 +1,27 @@
 import { useState, useEffect } from 'react';
 import type { ComponentType } from 'react';
 import { useTranslation } from '../i18n';
+import { getBdusPublicConfig } from '../../utils/bdus-config';
+import { bdusRecord, normalizeBdusRecord } from '../../utils/bdus-client';
+
+function defaultSource(): 'directus' | 'bdus' {
+  return import.meta.env.PUBLIC_BDUS_URL ? 'bdus' : 'directus';
+}
 
 export interface RecordFetcherProps {
+  /** Which backend to fetch from. Defaults to 'bdus' when PUBLIC_BDUS_URL is set, else 'directus'. */
+  source?: 'directus' | 'bdus';
   /** Directus base URL. Defaults to PUBLIC_DIRECTUS_URL env var. */
   directusUrl?: string;
   /** Directus static token for authentication. Defaults to PUBLIC_DIRECTUS_TOKEN env var. */
   directusToken?: string;
+  /** bdus5 base URL. Defaults to PUBLIC_BDUS_URL env var. */
+  bdusUrl?: string;
+  /** bdus5 token. Defaults to PUBLIC_BDUS_TOKEN env var. */
+  bdusToken?: string;
   /**
-   * Fields to fetch (Directus fields query, e.g. `"*.*.*"`).
+   * Fields to fetch (Directus fields query, e.g. `"*.*.*"`). Ignored for
+   * bdus5, whose full-record endpoint always returns every field.
    * Defaults to `"*.*.*"`.
    */
   fields?: string;
@@ -68,8 +81,11 @@ function DefaultError({ table, id }: { table: string; id: string }) {
  * - `fields` — Directus fields selector (optional, overrides the `fields` prop)
  */
 export function RecordFetcher({
+  source = defaultSource(),
   directusUrl = import.meta.env.PUBLIC_DIRECTUS_URL ?? '',
   directusToken = import.meta.env.PUBLIC_DIRECTUS_TOKEN ?? '',
+  bdusUrl,
+  bdusToken,
   fields: fieldsProp = '*.*.*',
   Layout,
   LoadingComponent = DefaultLoading,
@@ -96,6 +112,27 @@ export function RecordFetcher({
       return;
     }
 
+    if (source === 'bdus') {
+      const config = getBdusPublicConfig(bdusUrl, bdusToken);
+      if (!config) {
+        setError(true);
+        setLoading(false);
+        return;
+      }
+      const normalizedId = /^\d+$/.test(actualId) ? Number(actualId) : actualId;
+      bdusRecord(config, actualTable, normalizedId)
+        .then((raw) => {
+          setRecord(normalizeBdusRecord(raw));
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error('RecordFetcher: error fetching bdus5 record:', err);
+          setError(true);
+          setLoading(false);
+        });
+      return;
+    }
+
     const url = `${directusUrl.replace(/\/$/, '')}/items/${actualTable}/${actualId}?fields=${encodeURIComponent(fields)}`;
 
     const headers: Record<string, string> = {
@@ -119,7 +156,7 @@ export function RecordFetcher({
         setError(true);
         setLoading(false);
       });
-  }, [directusUrl, directusToken, fieldsProp]);
+  }, [source, directusUrl, directusToken, bdusUrl, bdusToken, fieldsProp]);
 
   if (loading) return <LoadingComponent />;
   if (error || !record) return <ErrorComponent table={table} id={id} />;

@@ -80,7 +80,7 @@ import { DataTb, Map, Gallery } from '@lad-sapienza/scms-core';
 | `TableOfContents` | Auto-generated TOC from headings |
 | `RedirectPage` | Static client-side redirect stub (meta-refresh + JS fallback) for static hosts |
 | `ZoteroGeoViewer` | Zotero library visualised on a map |
-| `RecordProvider`, `Field`, `Image`, `RecordFetcher`, `useRecordFetcher` | Build single-record detail pages against Directus |
+| `RecordProvider`, `Field`, `Image`, `RecordFetcher`, `useRecordFetcher` | Build single-record detail pages against Directus or bdus5 |
 | `SearchUI`, `SearchUISimple`, `SearchUIAdvanced` | Field/operator/value search UI (used by `Map`'s `searchInFields`) |
 
 Only the entry points below are public API: the package declares an
@@ -104,12 +104,54 @@ components and the ones listed here:
 | `.../components/RedirectPage/RedirectPage.astro` | `RedirectPage` |
 | `.../components/i18n`, `.../components/i18n/I18nInit.astro` | translation helpers; `I18nInit` |
 | `.../integrations/directusLoader` | `directusLoader` for `content.config.ts` |
+| `.../integrations/bdusLoader` | `bdusLoader` for `content.config.ts` — same idea, against a bdus5 (BraDypUS v5) app |
 
 ```js
 import SEO from '@lad-sapienza/scms-core/components/SEO/SEO.astro';
 import BSNavbar from '@lad-sapienza/scms-core/components/BSNavbar';
 import { directusLoader } from '@lad-sapienza/scms-core/integrations/directusLoader';
+import { bdusLoader } from '@lad-sapienza/scms-core/integrations/bdusLoader';
 ```
+
+### Directus vs. bdus5
+
+Both are "headless CMS" data sources with the same filter vocabulary
+(`_eq`, `_icontains`, ...). Pick per use case, not per site — a site can use
+both:
+
+| | Directus | bdus5 |
+|---|---|---|
+| Config env vars | `PUBLIC_DIRECTUS_URL` / `PUBLIC_DIRECTUS_TOKEN` (client-exposed) | `BDUS_BASE_URL` / `BDUS_API_KEY` (build-time only) for loaders/listings; `PUBLIC_BDUS_URL` / `PUBLIC_BDUS_TOKEN` (client-exposed) for single-record fetches only |
+| `DataTb` / `Map` live sources, many rows | ✅ one request | ✅ one request (lean fields only — no geometry/files/plugins) |
+| Single record (`RecordFetcher` / `useRecordFetcher`) | ✅ one request | ✅ one request |
+| Many rows + geometry/files/plugins (map overlays, galleries) | ✅ one request | ⚠️ one request *per row* — use `bdusLoader` or `bdusQueryFull`/`bdusToFeatureCollection` (internal to the package; called from a loader or from an Astro component's own frontmatter) at build time, not from a browser-fetching component |
+
+bdus5's shorthand/options (`BdusShorthand`, `BdusListOptions`) accept an
+optional `mode: 'realtime' | 'build'` declaring which of the two rows above a
+given config is for — each entry point defaults to the only mode it actually
+supports and throws if you declare the other one, instead of silently
+fetching the wrong way.
+
+bdus5 records are nested (`core.<field>.val`, plus `geodata`/`files`/
+`plugins`/`bibliography`); every entry point above normalizes this to a flat
+object first, so `<Field name="...">` and friends work the same regardless
+of backend. Multi-select fields come back as a single comma-joined string
+(e.g. `"necropolis,sanctuary/temple"`), not an array like Directus — split on
+`,` where you display them.
+
+Both backends are typically locked down with CORS to the production origin
+only, not `localhost` — a client-side fetch (`DataTb`'s `bdus`/`directus`
+prop, `RecordFetcher`/`useRecordFetcher`) that works in production can fail
+locally with a CORS error in the browser console. Confirm with `curl -H
+"Authorization: Bearer <token>" <url>` (bypasses CORS, which is
+browser-enforced) before assuming the integration itself is broken. The
+build-time path (`directusLoader`/`bdusLoader`, or any fetch from an Astro
+component's own frontmatter) runs in Node and is never affected.
+
+bdus5's full-record endpoint (one request per row) may also rate-limit a
+large `bdusLoader`/`bdusQueryFull` build — see `BdusListOptions.concurrency`/
+`requestSpacingMs` (defaults: 1 request at a time, 250ms apart) if you hit
+429s even at the conservative default.
 
 See each component folder's own `README.md` (`components/DataTb`, `components/Gallery`, `components/Map`, `components/RedirectPage`, `components/ZoteroGeoViewer`, `components/`) for detailed API docs and examples.
 

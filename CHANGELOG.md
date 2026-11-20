@@ -4,6 +4,38 @@ All notable changes to `@lad-sapienza/scms-core`. Prereleases were published
 under the `alpha` dist-tag. Versions up to `0.1.0-alpha.5` were not tagged in
 git; their entries are grouped by date.
 
+## 0.3.0 — 2026-11-20
+
+A minor: new, opt-in data source, no change required for sites that don't
+use it.
+
+### Added
+- **bdus5 (BraDypUS v5) support**, as a second data-source backend alongside
+  Directus — same filter vocabulary, parallel entry points:
+  - `DataTb`'s `bdus` shorthand prop and `'bdus'` `SourceConfig`/`BdusSource`
+    (lean list, one request, like the existing `directus` source).
+  - `RecordFetcher` / `useRecordFetcher` / `getRecord` now accept
+    `source: 'bdus'` (or auto-detect from `PUBLIC_BDUS_URL`) for single-record
+    detail pages.
+  - `bdusLoader` (`@lad-sapienza/scms-core/integrations/bdusLoader`) for
+    `content.config.ts`, mirroring `directusLoader`.
+  - Internal `utils/bdus-client.ts` / `utils/bdus-config.ts` (`bdusListAll`,
+    `bdusRecord`, `bdusQueryFull`, `normalizeBdusRecord`,
+    `bdusToFeatureCollection`, `bdusFileUrl`) for build-time use (Astro
+    frontmatter, custom loaders) when many rows need geometry/files/plugins —
+    bdus5's full-record endpoint is one request *per row*, so that case is
+    build-time only by design; see README "Directus vs. bdus5".
+  - Env vars: `BDUS_BASE_URL` / `BDUS_API_KEY` (build-time only, never
+    bundled to the client) for loaders and bulk/geo fetches; `PUBLIC_BDUS_URL`
+    / `PUBLIC_BDUS_TOKEN` (client-exposed, like `PUBLIC_DIRECTUS_*`) for
+    single-record fetches only.
+  - `BdusShorthand`/`BdusListOptions` accept an optional `mode: 'realtime' |
+    'build'`, declaring — and enforcing, not just documenting — which case a
+    given config is for. Each entry point defaults to the only mode it
+    actually supports and throws a clear error if you declare the other one
+    (e.g. `bdus={{ tb, mode: 'build' }}` on `DataTb` throws immediately,
+    telling you to use `bdusLoader`/`bdusQueryFull` instead).
+
 ## 0.2.1 — 2026-10-12
 
 ### Changed

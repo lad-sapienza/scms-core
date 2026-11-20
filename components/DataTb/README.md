@@ -230,6 +230,27 @@ PUBLIC_DIRECTUS_TOKEN=your-access-token
 
 The `source={{ type: 'directus', config: { url, token }, collection }}` form shown above is still supported for cases where you need to pass an explicit URL/token instead of the env vars (e.g. multiple Directus instances on one site).
 
+## bdus5 Setup
+
+Same idea as Directus, for a bdus5 (BraDypUS v5) app — same filter vocabulary (`_eq`, `_icontains`, ...), `DataTb`'s lean list fetch costs one request regardless of backend:
+
+```env
+PUBLIC_BDUS_URL=https://bdus.lad-sapienza.it/your-app
+PUBLIC_BDUS_TOKEN=your-read-only-key
+```
+
+```jsx
+<DataTb
+  bdus={{
+    tb: 'your_table',
+    queryString: 'filter[status][_eq]=published',
+  }}
+  client:idle
+/>
+```
+
+The `PUBLIC_` env vars above are for this lean, client-side listing only — fine to expose, like `PUBLIC_DIRECTUS_*`. If you also need geometry/files/plugins for every row (a map overlay, a gallery), that's a build-time-only job: see the main package README's "Directus vs. bdus5" and `bdusLoader`.
+
 ## Client Hydration
 
 For optimal performance, use appropriate hydration strategies:
@@ -266,9 +287,9 @@ The DataTb component follows a simple, self-contained architecture:
 - **DataTbMdx.tsx** - MDX-safe wrapper (memoizes props, resolves `csv`/`json`/`api`/`directus` shorthands) — this is what `@lad-sapienza/scms-core/components/DataTb`'s `DataTb` export actually is
 - **types.ts** - TypeScript definitions for all source types
 - **utils.ts** - Helper functions for column detection, formatting
-- **sources/** - Standalone headless data-loaders (`CsvSource`, `JsonSource`, `DirectusSource`, `ApiSource`) for building a custom UI outside `DataTb` itself
+- **sources/** - Standalone headless data-loaders (`CsvSource`, `JsonSource`, `DirectusSource`, `BdusSource`, `ApiSource`) for building a custom UI outside `DataTb` itself
 
-Data fetching is handled internally based on the `source`/`csv`/`json`/`api`/`directus` prop, supporting CSV, JSON, Directus, and generic APIs.
+Data fetching is handled internally based on the `source`/`csv`/`json`/`api`/`directus`/`bdus` prop, supporting CSV, JSON, Directus, bdus5, and generic APIs.
 
 ## Examples
 

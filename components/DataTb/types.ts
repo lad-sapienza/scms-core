@@ -6,6 +6,7 @@
 
 
 import type { DirectusShorthand, DirectusSourceConfig } from '../../utils/directus-config';
+import type { BdusShorthand, BdusSourceConfig } from '../../utils/bdus-config';
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -63,7 +64,7 @@ export interface PaginationConfig {
 /**
  * Source type discriminators
  */
-export type SourceType = 'csv' | 'json' | 'directus' | 'api';
+export type SourceType = 'csv' | 'json' | 'directus' | 'bdus' | 'api';
 
 /**
  * CSV Source configuration
@@ -94,6 +95,9 @@ export interface JsonSourceConfig {
 
 // Re-export DirectusSourceConfig from shared utils
 export type { DirectusSourceConfig } from '../../utils/directus-config';
+
+// Re-export BdusSourceConfig from shared utils
+export type { BdusSourceConfig } from '../../utils/bdus-config';
 
 /**
  * Generic API Source configuration
@@ -139,6 +143,7 @@ export type SourceConfig =
   | CsvSourceConfig
   | JsonSourceConfig
   | DirectusSourceConfig
+  | BdusSourceConfig
   | ApiSourceConfig
   | GeoJsonSourceConfig
   | VectorSourceConfig;
@@ -212,4 +217,7 @@ export interface DataTbProps {
 
   /** Simplified Directus configuration (MDX friendly) - uses same interface as Map component */
   directus?: DirectusShorthand;
+
+  /** Simplified bdus5 (BraDypUS v5) configuration (MDX friendly) */
+  bdus?: BdusShorthand;
 }
