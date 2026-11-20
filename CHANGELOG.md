@@ -4,6 +4,24 @@ All notable changes to `@lad-sapienza/scms-core`. Prereleases were published
 under the `alpha` dist-tag. Versions up to `0.1.0-alpha.5` were not tagged in
 git; their entries are grouped by date.
 
+## 0.3.3 — 2026-11-20
+
+A patch: new, opt-in public entry point, no change required for sites that
+don't use it. Fixes a doc inaccuracy from 0.3.0/0.3.1 (both previously
+described `bdusQueryFull`/`bdusToFeatureCollection` as callable "from an
+Astro component's own frontmatter" — true only once this patch actually
+exposes them there).
+
+### Added
+- `@lad-sapienza/scms-core/integrations/bdusQuery`: `bdusListAll`,
+  `bdusRecord`, `bdusQueryFull`, `bdusFullByFilter`, `bdusFindOne`,
+  `bdusToFeatureCollection`, `normalizeBdusRecord`, `bdusFileUrl`,
+  `getBdusServerConfig` — direct, build-time bdus5 queries for an Astro
+  component's own frontmatter, a `getStaticPaths` function, or a build
+  script, for when `bdusLoader`'s one-table-per-collection shape doesn't fit
+  (a filter only known at build time, e.g. resolved from another record's
+  own data). Node-only, like `bdusLoader`.
+
 ## 0.3.2 — 2026-11-20
 
 A patch: new, opt-in helper for an existing pattern (`getStaticPaths` +

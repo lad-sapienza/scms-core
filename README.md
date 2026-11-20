@@ -105,12 +105,14 @@ components and the ones listed here:
 | `.../components/i18n`, `.../components/i18n/I18nInit.astro` | translation helpers; `I18nInit` |
 | `.../integrations/directusLoader` | `directusLoader` for `content.config.ts` |
 | `.../integrations/bdusLoader` | `bdusLoader` for `content.config.ts` — same idea, against a bdus5 (BraDypUS v5) app |
+| `.../integrations/bdusQuery` | `bdusListAll`/`bdusRecord`/`bdusQueryFull`/`bdusFullByFilter`/`bdusFindOne`/`bdusToFeatureCollection`/`normalizeBdusRecord`/`bdusFileUrl`/`getBdusServerConfig` — direct, build-time bdus5 queries (an Astro frontmatter/`getStaticPaths`/build script) for when `bdusLoader`'s one-table-per-collection shape doesn't fit, e.g. a filter only known at build time |
 
 ```js
 import SEO from '@lad-sapienza/scms-core/components/SEO/SEO.astro';
 import BSNavbar from '@lad-sapienza/scms-core/components/BSNavbar';
 import { directusLoader } from '@lad-sapienza/scms-core/integrations/directusLoader';
 import { bdusLoader } from '@lad-sapienza/scms-core/integrations/bdusLoader';
+import { bdusQueryFull, getBdusServerConfig } from '@lad-sapienza/scms-core/integrations/bdusQuery';
 ```
 
 ### Directus vs. bdus5
@@ -124,7 +126,7 @@ both:
 | Config env vars | `PUBLIC_DIRECTUS_URL` / `PUBLIC_DIRECTUS_TOKEN` (client-exposed) | `BDUS_BASE_URL` / `BDUS_API_KEY` (build-time only) for loaders/listings; `PUBLIC_BDUS_URL` / `PUBLIC_BDUS_TOKEN` (client-exposed) for single-record fetches only |
 | `DataTb` / `Map` live sources, many rows | ✅ one request | ✅ one request (lean fields only — no geometry/files/plugins; `Map`'s `bdus` shorthand plots a table whose coordinates are a plain field this way) |
 | Single record (`RecordFetcher` / `useRecordFetcher`) | ✅ one request | ✅ one request |
-| Many rows + geometry/files/plugins (map overlays, galleries) | ✅ one request | ⚠️ one request *per row* — fetch at build time instead: `bdusLoader` (a content collection) or `bdusQueryFull`/`bdusToFeatureCollection` from an Astro component's own frontmatter, then convert with `Map`'s exported `dataToGeoJson` and pass the result to `geojson` (see `components/Map/README.md` → "bdus5 with full geometry") |
+| Many rows + geometry/files/plugins (map overlays, galleries) | ✅ one request | ⚠️ one request *per row* — fetch at build time instead: `bdusLoader` (a content collection) or `bdusToFeatureCollection`/`bdusQueryFull` from `.../integrations/bdusQuery`, called directly in an Astro component's own frontmatter; convert a `bdusLoader` collection's entries with `Map`'s exported `dataToGeoJson` and pass the result to `geojson` (see `components/Map/README.md` → "bdus5 with full geometry") |
 
 bdus5's shorthand/options (`BdusShorthand`, `BdusListOptions`) accept an
 optional `mode: 'realtime' | 'build'` declaring which of the two rows above a

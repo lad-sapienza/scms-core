@@ -1,6 +1,6 @@
 {
   "name": "@lad-sapienza/scms-core",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Framework components and Astro integrations for s:CMS — DataTb, Gallery, Map, ZoteroGeoViewer, Record.",
   "type": "module",
   "license": "BSD-0-Clause",
@@ -30,6 +30,7 @@
     "./components/i18n/I18nInit.astro": "./components/i18n/I18nInit.astro",
     "./integrations/directusLoader": "./integrations/directusLoader.ts",
     "./integrations/bdusLoader": "./integrations/bdusLoader.ts",
+    "./integrations/bdusQuery": "./integrations/bdusQuery.ts",
     "./package.json": "./package.json"
   },
   "bin": {
