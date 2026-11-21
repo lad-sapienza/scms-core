@@ -82,6 +82,7 @@ import { DataTb, Map, Gallery } from '@lad-sapienza/scms-core';
 | `ZoteroGeoViewer` | Zotero library visualised on a map |
 | `RecordProvider`, `Field`, `Image`, `RecordFetcher`, `useRecordFetcher` | Build single-record detail pages against Directus or bdus5 |
 | `SearchUI`, `SearchUISimple`, `SearchUIAdvanced` | Field/operator/value search UI (used by `Map`'s `searchInFields`) |
+| `SearchUINested` | Search with nested AND/OR groups, emits a Directus/bdus5 filter (see `components/Map/Search/README.md`) |
 
 Only the entry points below are public API: the package declares an
 [`exports`](https://nodejs.org/api/packages.html#exports) map, and importing any
@@ -94,6 +95,7 @@ components and the ones listed here:
 | `@lad-sapienza/scms-core` | root barrel — `DataTb`, `Map`, `Gallery`, `Record*`, `RedirectPage`, `ZoteroGeoViewer`, i18n helpers |
 | `@lad-sapienza/scms-core/scms` | `scms()` — use this (not the root) in `astro.config.mjs` |
 | `.../components/Map` | `Map`, map types, `defaultBasemaps` |
+| `.../components/Search` | `SearchUI*`, `SearchUINested` and its helpers |
 | `.../components/DataTb`, `.../components/DataTb/types` | `DataTb` and the source components; table types |
 | `.../components/Gallery`, `.../components/Gallery/Gallery.astro` | `Gallery` (named export / `.astro` default) |
 | `.../components/Record` | `RecordProvider`, `Field`, `Image`, `RecordFetcher`, `useRecordFetcher` |

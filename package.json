@@ -14,6 +14,7 @@
     ".": "./index.ts",
     "./scms": "./scms.ts",
     "./components/Map": "./components/Map/index.ts",
+    "./components/Search": "./components/Map/Search/index.ts",
     "./components/DataTb": "./components/DataTb/index.ts",
     "./components/DataTb/types": "./components/DataTb/types.ts",
     "./components/Gallery": "./components/Gallery/index.ts",

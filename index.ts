@@ -9,7 +9,8 @@ export { DataTb, CsvSource, JsonSource, DirectusSource, ApiSource } from './comp
 
 // Map components
 export { Map } from './components/Map';
-export { SearchUI, SearchUISimple, SearchUIAdvanced } from './components/Map/Search';
+export { SearchUI, SearchUISimple, SearchUIAdvanced, SearchUINested } from './components/Map/Search';
+export type { SearchUINestedProps, NestedSearchResult, NestedField } from './components/Map/Search';
 
 // ZoteroGeoViewer component
 export { ZoteroGeoViewer } from './components/ZoteroGeoViewer';
