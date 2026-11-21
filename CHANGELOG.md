@@ -4,6 +4,22 @@ All notable changes to `@lad-sapienza/scms-core`. Prereleases were published
 under the `alpha` dist-tag. Versions up to `0.1.0-alpha.5` were not tagged in
 git; their entries are grouped by date.
 
+## Unreleased
+
+### Added
+- `SearchUINested` (`@lad-sapienza/scms-core/components/Search`, also from the
+  root barrel): advanced search with nested AND/OR groups. Emits a
+  Directus/bdus5 filter (`_and`/`_or`/…); for flat trees also the same
+  `{connector, filters}` shape `SearchUI` produces. Per-field `ops`,
+  `transformValue` and `buildFilter` hooks, restorable from a serialised
+  string (`initialQuery`, invalid input → empty search), `onChange`,
+  `submitOnEnter`, `showSummary`, `isLoading`. Pure helpers exported:
+  `nestedToFilter`, `nestedToFlat`, `serializeNested`, `parseNested`,
+  `describeNested`. New `search.nested.*` dictionary keys (English built in).
+  `SearchUI*`, `Map` and shared types are unchanged. Docs:
+  `components/Map/Search/README.md`.
+- `package.json` `exports`: `./components/Search`.
+
 ## 0.3.3 — 2026-11-20
 
 A patch: new, opt-in public entry point, no change required for sites that
