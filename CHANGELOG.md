@@ -4,7 +4,9 @@ All notable changes to `@lad-sapienza/scms-core`. Prereleases were published
 under the `alpha` dist-tag. Versions up to `0.1.0-alpha.5` were not tagged in
 git; their entries are grouped by date.
 
-## Unreleased
+## 0.3.4 — 2026-11-21
+
+A patch: new, opt-in component and export; no change required for any site.
 
 ### Added
 - `SearchUINested` (`@lad-sapienza/scms-core/components/Search`, also from the
